@@ -364,7 +364,7 @@ class DailyTransactionsController extends Controller
                         ORDER BY t1.transaction_date DESC, t1.transaction_id DESC
                     ) AS rn') // Break ties by transaction_id if dates are identical
                 )
-                 ->where('t1.transaction_id', 'not like', '%RIS%');  // Exclude RIS transaction IDs;
+                ->where('t1.transaction_id', 'not like', '%RIS%');  // Exclude RIS transaction IDs;
 
             // Join with customers table and filter for the latest transaction (rn = 1)
             $customersWithLatestTransactions = DB::table('tbl_customers')
@@ -407,14 +407,24 @@ class DailyTransactionsController extends Controller
         }
     }
 
-    public function getCustomersWithTransactionsToday( $today)
+
+
+    public function CustomersWithTransactionsToday($id)
     {
 
 
         try {
-            // $today = Carbon::today()->toDateString(); // e.g. '2025-05-02'
+          //  $today = Carbon::today()->toDateString(); // e.g. '2025-05-02'
 
             // Subquery to fetch the latest transaction for each customer **on the current day**
+
+            $getLatestTransactionDate = DB::table('vw_patients_overall_transactions')
+                ->where('transaction_id', 'not like', '%RIS%')
+                ->where('customer_id', '=', $id)
+                ->orderBy('transaction_date', 'desc')
+                ->orderBy('transaction_id', 'desc')
+                ->first();
+
             $latestTransactionQuery = DB::table('tbl_daily_transactions as t1')
                 ->select(
                     't1.customer_id',
@@ -425,7 +435,7 @@ class DailyTransactionsController extends Controller
                     ORDER BY t1.transaction_date DESC, t1.transaction_id DESC
                 ) AS rn')
                 )
-                ->whereDate('t1.transaction_date', $today) // Filter transactions for today
+                ->whereDate('t1.transaction_date', $getLatestTransactionDate->transaction_id) // Filter transactions for today
                 ->where('t1.transaction_id', 'not like', '%RIS%');  // Exclude RIS transaction IDs
 
             // Join with customers table and filter for the latest transaction (rn = 1)
@@ -469,23 +479,25 @@ class DailyTransactionsController extends Controller
         }
     }
 
-    public function Customer_Transaction_List($id){
+    public function Customer_Transaction_List($id)
+    {
 
         try {
 
             $list_level = DB::table('vw_patients_overall_transactions')
-                            ->where('customer_id','=', $id)
-                             ->where('transaction_id', 'not like', '%RIS%')
-                            ->get();
+                ->where('customer_id', '=', $id)
+                ->where('transaction_id', 'not like', '%RIS%')
+                ->get();
 
-                            if($list_level -> isEmpty()){
-                                return response()->json('No list Available...',400);
-                            }
+            if ($list_level->isEmpty()) {
+                return response()->json('No list Available...', 400);
+            }
 
-                            return response()->json([ 'success' => true,
-                                                             'result' => $list_level],200);
-
-        }  catch (QueryException $qe) {
+            return response()->json([
+                'success' => true,
+                'result' => $list_level
+            ], 200);
+        } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error occurred',
@@ -498,25 +510,27 @@ class DailyTransactionsController extends Controller
                 'error' => $th->getMessage(),
             ], 500);
         }
-
     }
 
-    public function Customer_Transaction_List_Breakdown($id, $transaction_id){
+    public function Customer_Transaction_List_Breakdown($id, $transaction_id)
+    {
 
         try {
             $list_breakdown = DB::table('vw_patient_transactions_list')
-                            ->where('customer_id','=', $id)
-                            ->where('transaction_id','=', $transaction_id)
-                            ->where('transaction_id', 'not like', '%RIS%')
-                            ->get();
+                ->where('customer_id', '=', $id)
+                ->where('transaction_id', '=', $transaction_id)
+                ->where('transaction_id', 'not like', '%RIS%')
+                ->get();
 
-                            if($list_breakdown -> isEmpty()){
-                                return response()->json('No list Available...',400);
-                            }
+            if ($list_breakdown->isEmpty()) {
+                return response()->json('No list Available...', 400);
+            }
 
-                            return response()->json([ 'success' => true,
-                                                             'result' => $list_breakdown],200);
-        }  catch (QueryException $qe) {
+            return response()->json([
+                'success' => true,
+                'result' => $list_breakdown
+            ], 200);
+        } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error occurred',
@@ -529,6 +543,5 @@ class DailyTransactionsController extends Controller
                 'error' => $th->getMessage(),
             ], 500);
         }
-
     }
 }
