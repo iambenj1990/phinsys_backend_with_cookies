@@ -48,7 +48,7 @@ class DailyTransactionsController extends Controller
 
             $transactions = Transactions::orderBy('id', 'desc')
                 ->get();
-            return response()->json(['success' => true, 'transactions' =>  $transactions]);
+            return response()->json(['success' => true, 'transactions' => $transactions]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -80,7 +80,7 @@ class DailyTransactionsController extends Controller
 
             $transactions = Transactions::where('id', $id)
                 ->get();
-            return response()->json(['success' => true, 'transactions' =>  $transactions]);
+            return response()->json(['success' => true, 'transactions' => $transactions]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
@@ -146,7 +146,7 @@ class DailyTransactionsController extends Controller
                     'tbl_items.id as item_id'
                 )
                 ->get();
-            return response()->json(['success' => true, 'transactions' =>  $transactions]);
+            return response()->json(['success' => true, 'transactions' => $transactions]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
@@ -197,7 +197,7 @@ class DailyTransactionsController extends Controller
             $transactions = Transactions::create($validationInput);
             return response()->json([
                 'success' => true,
-                'customers' =>  $transactions
+                'customers' => $transactions
             ]);
         } catch (ValidationException $ve) {
             return response()->json([
@@ -247,7 +247,7 @@ class DailyTransactionsController extends Controller
             $transactions->update($validationInput);
             return response()->json([
                 'success' => true,
-                'customers' =>  $transactions
+                'customers' => $transactions
             ]);
         } catch (ValidationException $ve) {
             return response()->json([
@@ -350,46 +350,39 @@ class DailyTransactionsController extends Controller
         }
     }
 
-    public function getCustomersWithLatestTransactions()
+    public function getCustomersWithLatestTransactions(Request $request)
     {
         try {
-            // Subquery to fetch the latest transaction for each customer
-            $latestTransactionQuery = DB::table('tbl_daily_transactions as t1')
-                ->select(
-                    't1.customer_id',
-                    't1.transaction_id',
-                    't1.transaction_date',
-                    DB::raw('ROW_NUMBER() OVER (
-                        PARTITION BY t1.customer_id
-                        ORDER BY t1.transaction_date DESC, t1.transaction_id DESC
-                    ) AS rn') // Break ties by transaction_id if dates are identical
-                )
-                ->where('t1.transaction_id', 'not like', '%RIS%');  // Exclude RIS transaction IDs;
 
-            // Join with customers table and filter for the latest transaction (rn = 1)
-            $customersWithLatestTransactions = DB::table('tbl_customers')
-                ->joinSub($latestTransactionQuery, 'latest_transactions', function ($join) {
-                    $join->on('tbl_customers.id', '=', 'latest_transactions.customer_id');
-                })
-                ->select(
-                    'tbl_customers.id as customer_id',
-                    'tbl_customers.firstname',
-                    'tbl_customers.lastname',
-                    'tbl_customers.middlename',
-                    'tbl_customers.ext',
-                    'tbl_customers.birthdate',
-                    'tbl_customers.age',
-                    'tbl_customers.contact_number',
-                    'tbl_customers.barangay',
-                    'latest_transactions.transaction_id',
-                    'latest_transactions.transaction_date'
-                )
-                ->where('latest_transactions.rn', 1) // Select only the latest transaction
+            $ValidateRequest = $request->validate(
+                [
+                    'customer_id' => 'required|numeric',
+                ]
+            );
+
+            $Latest_transaction_id = DB::table('tbl_daily_transactions')
+                ->where('customer_id', $ValidateRequest['customer_id'])
+                ->where('transaction_id', 'not like', '%RIS%')
+                ->orderByDesc('id')
+                ->value('transaction_id');
+
+
+            if (!$Latest_transaction_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No transactions found for this customer',
+                ], 404);
+            }
+
+            // Get items of that transaction
+            $get_items_of_this_transaction = DB::table('vw_orders_information')
+                ->where('transaction_id', $Latest_transaction_id)
                 ->get();
+
 
             return response()->json([
                 'success' => true,
-                'data' => $customersWithLatestTransactions,
+                'data' => $get_items_of_this_transaction,
                 'message' => 'Customers with latest transactions retrieved successfully',
             ], 200);
         } catch (QueryException $qe) {
@@ -414,7 +407,7 @@ class DailyTransactionsController extends Controller
 
 
         try {
-          //  $today = Carbon::today()->toDateString(); // e.g. '2025-05-02'
+            //  $today = Carbon::today()->toDateString(); // e.g. '2025-05-02'
 
             // Subquery to fetch the latest transaction for each customer **on the current day**
 
