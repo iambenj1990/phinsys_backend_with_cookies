@@ -31,7 +31,9 @@ class customers extends Model
         'category',
         'is_pwd',
         'is_solo',
-        'user_id'
+        'user_id',
+        'origin',
+        'maifp_id'
     ];
 
      public function scopeDateBetween($query, $from, $to)

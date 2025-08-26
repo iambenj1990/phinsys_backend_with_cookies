@@ -3,6 +3,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\MaifController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\ItemsController;
@@ -34,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/transactions/{id}',[DailyTransactionsController::class,'Customer_Transaction_List']);
             Route::get('/transactions/{id}/list/{trans_id}',[DailyTransactionsController::class,'Customer_Transaction_List_Breakdown']);
             Route::post('/list/dates',[CustomersController::class, 'CustomerByDate']);
+            Route::post('/bulk',[CustomersController::class, 'store_bulk']);
         });
 
 
@@ -172,6 +174,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         });
 
+
+
         Route::prefix('logs')->group(function () {
             Route::get('/audit/logs', [AuditController::class, 'index']); // Get all audit logs
             Route::post('/audit/logs', [AuditController::class, 'store']); // Store a new audit log
@@ -182,6 +186,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::prefix('maif')->group(function () {
             Route::get('/patients', [\App\Http\Controllers\MaifController::class, 'index']); // Fetch patients from external database
+            Route::post('/transactions/latest', [MaifController::class, 'getPatientLatestTransactions']); // Get latest transactions for a patient
         });
 
 });
