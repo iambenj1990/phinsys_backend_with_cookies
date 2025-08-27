@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\DB;
 
 class MaifController extends Controller
@@ -49,50 +50,96 @@ class MaifController extends Controller
         return response()->json(['status' => 'success', 'trx_num' => $transactionNumber], 200);
     }
 
-    public function store_medication(Request $request) {
-
-        $validated = $request->validate([
-            'transaction_id' => 'required|integer',
-            'status' => 'required|string|max:255',
-        ]);
-
+    public function store_medication(Request $request)
+    {
         try {
-            DB::connection('external_mysql')->table('medications')->insert([
-                'transaction_id' => $validated['transaction_id'],
-                'status' => $validated['status'],
+            $validated = $request->validate([
+                'transaction_id' => 'required|string',
+                'status' => 'required|string|max:255',
             ]);
 
-            return response()->json(['status' => 'success', 'message' => 'Medication stored successfully'], 201);
+
+ $get_ID = DB::connection('external_mysql')->table('transaction')
+                ->where('transaction_number', $validated['transaction_id'])
+                ->value('id');
+
+
+            DB::connection('external_mysql')->table('medication')->insert([
+                'transaction_id' => $get_ID,
+                'status' => $validated['status'],
+                'created_at' => now(),
+                'updated_at' =>now()
+            ]);
+
+            return response()->json(['status' => 'success', 'message' => 'Medication status Done'], 201);
         } catch (QueryException $e) {
-            return response()->json(['status' => 'error', 'message' => 'Failed to store medication', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
-    public function store_medication_details(Request $request){
+    public function store_medication_details(Request $request)
+    {
 
 
-
-        $validated = $request->validate([
-            'medication_id' => 'required|integer',
-            'item_description' => 'required|string|max:150',
-            'patient_id' => 'required|integer|max:100',
-            'quantity' => 'required|integer',
-            'unit' => 'required|string|max:100',
-            'transaction_date' => 'required|date',
-            'user_id' => 'required|integer',
-            'amount' => 'required|numeric',
-        ]);
 
         try {
+
+            $validated = $request->validate([
+
+                'item_description' => 'required|string|max:150',
+                'patient_id' => 'required|integer|max:100',
+                'quantity' => 'required|integer',
+                'unit' => 'required|string|max:100',
+                'transaction_date' => 'required|date',
+                'transaction_id' => 'required|string',
+                'amount' => 'required|numeric',
+
+
+            ]);
+
+            $get_ID = DB::connection('external_mysql')->table('transaction')
+                ->where('transaction_number', $validated['transaction_id'])
+                ->value('id');
+
+
+
             DB::connection('external_mysql')->table('medication_details')->insert([
-                'medication_id' => $validated['medication_id'],
-                'dosage' => $validated['dosage'],
-                'frequency' => $validated['frequency'],
+
+                'item_description' => $validated['item_description'],
+                'patient_id' => $validated['patient_id'],
+                'quantity' => $validated['quantity'],
+                'unit' => $validated['unit'],
+                'transaction_date' => $validated['transaction_date'],
+                'transaction_id' => $get_ID,
+                'amount' => $validated['amount'],
+                'created_at' => now(),
+                'updated_at' => now()
+
             ]);
 
             return response()->json(['status' => 'success', 'message' => 'Medication details stored successfully'], 201);
         } catch (QueryException $e) {
-            return response()->json(['status' => 'error', 'message' => 'Failed to store medication details', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

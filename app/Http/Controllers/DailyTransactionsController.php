@@ -537,4 +537,44 @@ class DailyTransactionsController extends Controller
             ], 500);
         }
     }
+
+    public function Customer_Transaction(Request $request)
+    {
+
+
+        try {
+
+            $validateRequest = $request->validate(
+                [
+                    'transaction_id' => 'required|string',
+                ]
+            );
+
+
+            $list_breakdown = DB::table('vw_orders_information')
+                ->where('transaction_id', '=', $validateRequest['transaction_id'])
+                ->get();
+
+            if ($list_breakdown->isEmpty()) {
+                return response()->json('No list Available...', 400);
+            }
+
+            return response()->json([
+                'success' => true,
+                'result' => $list_breakdown
+            ], 200);
+        } catch (QueryException $qe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error occurred',
+                'error' => $qe->getMessage(),
+            ], 500);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
 }

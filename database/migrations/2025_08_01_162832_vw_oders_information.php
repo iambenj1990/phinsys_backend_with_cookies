@@ -14,12 +14,15 @@ return new class extends Migration
     {
         DB::statement("
         CREATE OR REPLACE VIEW vw_orders_information AS
-        select i.brand_name,
+        select
+               i.id,
+               i.brand_name,
                i.generic_name,
                i.dosage,
                i.dosage_form,
-               
+
                dt.quantity,
+               ROUND(i.price_per_pcs * dt.quantity, 2) AS amount,
                dt.transaction_id
         from tbl_items i
         inner join
@@ -34,6 +37,6 @@ return new class extends Migration
     {
         //
 
-          DB::statement("drop view if exists vw_orders_information;");
+        DB::statement("drop view if exists vw_orders_information;");
     }
 };
