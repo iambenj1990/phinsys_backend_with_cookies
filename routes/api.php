@@ -191,6 +191,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/transaction/list', [DailyTransactionsController::class, 'Customer_Transaction']); // Store new medication
             Route::post('/medication/new', [MaifController::class, 'store_medication_details']); // Store new medication
             Route::post('/medication/status', [MaifController::class, 'store_medication']); // Store new medication
+            Route::post('/medication/order',[MaifController::class, 'remove_order_medication_details']); //remove selected order
         });
 
 });

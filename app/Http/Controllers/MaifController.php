@@ -142,4 +142,40 @@ class MaifController extends Controller
             ], 500);
         }
     }
+
+    public function remove_order_medication_details(Request $request)
+    {
+        try {
+
+            $validated = $request->validate([
+                'transaction_id' => 'required|string',
+                'item_id' => 'required|integer'
+            ]);
+
+            $get_ID = DB::connection('external_mysql')->table('transaction')
+                ->where('transaction_number', $validated['transaction_id'])
+                ->value('id');
+
+            DB::connection('external_mysql')->table('medication_details')
+                ->where('transaction_id', $get_ID)
+                ->where('item_id', $validated['item_id'])
+                ->delete();
+
+            return response()->json(['status' => 'success', 'message' => 'Medication details removed successfully'], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }

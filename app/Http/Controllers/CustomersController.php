@@ -156,10 +156,16 @@ class CustomersController extends Controller
                 ->exists();
 
             if ($exists) {
+                    // 🔹 Check if customer already exists
+            $existing_client = Customers::where('firstname', $validationInput['firstname'])
+                ->where('lastname', $validationInput['lastname'])
+                ->where('birthdate', $validationInput['birthdate'])
+                ->get();
                 return response()->json([
                     'success' => false,
                     'message' => 'Customer already exists',
-                ], 409); // 409 Conflict
+                    'existing_name' => $existing_client,
+                ], 200); // 409 Conflict
             }
 
             Log::info('Incoming validated data:', $validationInput);
