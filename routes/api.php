@@ -19,6 +19,7 @@ use App\Http\Controllers\UserCredentialsController;
 use App\Http\Controllers\IndicatorLibraryController;
 use App\Http\Controllers\DailyTransactionsController;
 use App\Http\Controllers\RequisitionIssuanceSlipController;
+use App\Models\RequisitionIssuanceSlip;
 
 Route::post('/user/login', [SystemUserController::class, 'login_User']);
 
@@ -63,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/ris/transactions',[RequisitionIssuanceSlipController::class, 'RIS']);
             Route::post('/ris/info',[RequisitionIssuanceSlipController::class, 'RIS_INFO']);
             Route::post('/ris/date',[RequisitionIssuanceSlipController::class, 'RIS_TransactionDate']);
+            Route::post('/ris/remove/item',[RequisitionIssuanceSlipController::class, 'remove_item']);
         });
 
 

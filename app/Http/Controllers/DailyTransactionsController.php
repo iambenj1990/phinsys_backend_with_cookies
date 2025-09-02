@@ -190,6 +190,8 @@ class DailyTransactionsController extends Controller
                     'quantity' => 'required|numeric|min:1',
                     'unit' => 'nullable|string',
                     'transaction_date' => 'required|date',
+                    'origin' => 'nullable|string',
+                    'maifp_id' => 'nullable|string',
                     'user_id' => 'required|exists:users,id'
                 ]
             );
@@ -240,6 +242,8 @@ class DailyTransactionsController extends Controller
                     'quantity' => 'required|numeric|min:1',
                     'unit' => 'nullable|string',
                     'transaction_date' => 'required|date',
+                    'origin' => 'nullable|string',
+                    'maifp_id' => 'nullable|string',
                     'user_id' => 'required|exists:users,id'
                 ]
             );

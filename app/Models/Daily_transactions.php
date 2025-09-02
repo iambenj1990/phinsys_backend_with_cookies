@@ -20,6 +20,8 @@ class daily_transactions extends Model
         'quantity',
         'unit',
         'transaction_date',
+        'origin',
+        'maifp_id',
         'user_id',
     ];
 

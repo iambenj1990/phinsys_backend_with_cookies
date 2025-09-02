@@ -28,18 +28,19 @@ class RequisitionIssuanceSlipController extends Controller
         return "RIS-{$currendate}-{$transactionNumber}";
     }
 
-    public function RIS_TransactionDate(Request $request){
+    public function RIS_TransactionDate(Request $request)
+    {
 
         $validated = $request->validate([
-         'from' => 'required|date',
-         'to'   => 'required|date|after_or_equal:from',
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
         ]);
 
         try {
-             $list = RequisitionIssuanceSlip::dateBetween($validated['from'],$validated['to'])
-             ->orderBy('created_at', 'asc')
-             ->get();
-            return response()->json(['list'=> $list],200);
+            $list = RequisitionIssuanceSlip::dateBetween($validated['from'], $validated['to'])
+                ->orderBy('created_at', 'asc')
+                ->get();
+            return response()->json(['list' => $list], 200);
         } catch (QueryException $qe) {
 
             return response()->json([
@@ -47,7 +48,6 @@ class RequisitionIssuanceSlipController extends Controller
                 'message' => 'Database error',
                 'error' => $qe->getMessage()
             ], 500);
-
         } catch (Throwable $th) {
 
 
@@ -57,8 +57,8 @@ class RequisitionIssuanceSlipController extends Controller
                 'error' => $th->getMessage()
             ], 500);
         }
-
     }
+
 
 
 
@@ -69,7 +69,7 @@ class RequisitionIssuanceSlipController extends Controller
 
         try {
             $list = RequisitionIssuanceSlip::all();
-            return response()->json(['list'=> $list],200);
+            return response()->json(['list' => $list], 200);
         } catch (QueryException $qe) {
 
             return response()->json([
@@ -77,7 +77,6 @@ class RequisitionIssuanceSlipController extends Controller
                 'message' => 'Database error',
                 'error' => $qe->getMessage()
             ], 500);
-
         } catch (Throwable $th) {
 
 
@@ -87,23 +86,23 @@ class RequisitionIssuanceSlipController extends Controller
                 'error' => $th->getMessage()
             ], 500);
         }
-
     }
 
-    public function RIS_INFO(Request $request){
-           $validated = $request->validate([
+    public function RIS_INFO(Request $request)
+    {
+        $validated = $request->validate([
             'ris_no' => 'required|string',
         ]);
 
         $list = RequisitionIssuanceSlip::where('ris_id', $validated['ris_no'])
-                                    ->get();
+            ->get();
 
-        return response()->json(['info'=> $list], 200);
+        return response()->json(['info' => $list], 200);
     }
 
 
 
-     public function RIS(Request $request)
+    public function RIS(Request $request)
     {
         $validated = $request->validate([
             'ris_no' => 'required|string',
@@ -113,11 +112,10 @@ class RequisitionIssuanceSlipController extends Controller
         //                             ->get();
 
         $list = DB::table('vw_orders_information')
-                    ->where('transaction_id', $validated['ris_no'])
-                    ->get();
+            ->where('transaction_id', $validated['ris_no'])
+            ->get();
 
-        return response()->json(['list'=> $list], 200);
-
+        return response()->json(['list' => $list], 200);
     }
 
     public function show(Request $request)
@@ -129,11 +127,10 @@ class RequisitionIssuanceSlipController extends Controller
             ]
         );
 
-         $list = RequisitionIssuanceSlip::whereBetween('transaction_date',[$validated['transaction_date_from'], $validated['transaction_date_to']])
-                                            ->get();
+        $list = RequisitionIssuanceSlip::whereBetween('transaction_date', [$validated['transaction_date_from'], $validated['transaction_date_to']])
+            ->get();
 
-         return Response()->json(['list'=> $list],200);
-
+        return Response()->json(['list' => $list], 200);
     }
 
     public function store(Request $request)
@@ -196,49 +193,76 @@ class RequisitionIssuanceSlipController extends Controller
         }
     }
 
-    public function update( Request $request)
+    public function update(Request $request)
     {
-         try {
-        // Validate only the 'purpose' field
+        try {
+            // Validate only the 'purpose' field
+            $validated = $request->validate([
+                'purpose' => 'required|string|max:500',
+                'id' => 'required|numeric|exists:tbl_ris,id'
+            ]);
+
+            // Find the record
+            $ris = RequisitionIssuanceSlip::findOrFail($validated['id']);
+
+            // Update only the purpose
+            $ris->purpose = $validated['purpose'];
+            $ris->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Purpose updated successfully.',
+                'updated' => $ris
+            ], 200);
+        } catch (ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $ve->errors()
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'RIS record not found.'
+            ], 404);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unexpected error occurred.',
+                'error' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function remove_item(Request $request)
+    {
         $validated = $request->validate([
-            'purpose' => 'required|string|max:500',
-            'id'=> 'required|numeric|exists:tbl_ris,id'
+            'item_id' => 'required|numeric',
+            'ris_id' => 'required|string'
         ]);
 
-        // Find the record
-        $ris = RequisitionIssuanceSlip::findOrFail($validated['id']);
+        try {
+            $ris = daily_transactions::where('transaction_id', $validated['ris_id'])
+                ->where('item_id', $validated['item_id'])
+                ->first();
+            $ris->delete();
 
-        // Update only the purpose
-        $ris->purpose = $validated['purpose'];
-        $ris->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Purpose updated successfully.',
-            'updated' => $ris
-        ], 200);
-
-    } catch (ValidationException $ve) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation error',
-            'errors' => $ve->errors()
-        ], 422);
-    } catch (ModelNotFoundException $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'RIS record not found.'
-        ], 404);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unexpected error occurred.',
-            'error' => $th->getMessage()
-        ], 500);
-    }
-    }
-
-    public function delete($id)
-    {
+            return response()->json([
+                'success' => true,
+                'message' => 'RIS record deleted successfully.'
+            ], 200);
+        } catch (ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $ve->errors()
+            ], 422);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unexpected error occurred.',
+                'error' => $th->getMessage()
+            ], 500);
+        }
     }
 }

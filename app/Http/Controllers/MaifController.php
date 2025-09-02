@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MaifController extends Controller
 
@@ -90,7 +92,7 @@ class MaifController extends Controller
     public function store_medication_details(Request $request)
     {
 
-
+        Log::info('Storing medication details', $request->all());
 
         try {
 
@@ -103,6 +105,7 @@ class MaifController extends Controller
                 'transaction_date' => 'required|date',
                 'transaction_id' => 'required|string',
                 'amount' => 'required|numeric',
+                'item_id' => 'required|integer'
 
 
             ]);
@@ -114,7 +117,7 @@ class MaifController extends Controller
 
 
             DB::connection('external_mysql')->table('medication_details')->insert([
-
+                'item_id'=> $validated['item_id'],
                 'item_description' => $validated['item_description'],
                 'patient_id' => $validated['patient_id'],
                 'quantity' => $validated['quantity'],
@@ -129,12 +132,14 @@ class MaifController extends Controller
 
             return response()->json(['status' => 'success', 'message' => 'Medication details stored successfully'], 201);
         } catch (QueryException $e) {
+            Log::info('Database query failed', ['error' => $e->getMessage()]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Database query failed',
                 'error' => $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
+            Log::info('Unexpected error occurred', ['error' => $e->getMessage()]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred',
@@ -152,9 +157,13 @@ class MaifController extends Controller
                 'item_id' => 'required|integer'
             ]);
 
+             Log::info('Removing medication details', ['transaction_id' => $validated['transaction_id'], 'item_id' => $validated['item_id']]);
+             
             $get_ID = DB::connection('external_mysql')->table('transaction')
                 ->where('transaction_number', $validated['transaction_id'])
                 ->value('id');
+
+                Log::info('Removing medication details', ['transaction_id' => $get_ID, 'item_id' => $validated['item_id']]);
 
             DB::connection('external_mysql')->table('medication_details')
                 ->where('transaction_id', $get_ID)
