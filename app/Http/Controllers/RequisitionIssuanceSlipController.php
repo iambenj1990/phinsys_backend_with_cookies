@@ -238,11 +238,11 @@ class RequisitionIssuanceSlipController extends Controller
     {
         $validated = $request->validate([
             'item_id' => 'required|numeric',
-            'ris_id' => 'required|string'
+            'transaction_id' => 'required|string'
         ]);
 
         try {
-            $ris = daily_transactions::where('transaction_id', $validated['ris_id'])
+            $ris = daily_transactions::where('transaction_id', $validated['transaction_id'])
                 ->where('item_id', $validated['item_id'])
                 ->first();
             $ris->delete();
