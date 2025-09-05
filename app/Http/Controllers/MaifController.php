@@ -15,6 +15,26 @@ class MaifController extends Controller
 
 {
     //
+    public function get_patients(){
+        try {
+            $for_medication = DB::connection('external_mysql')
+            ->table('vw_patient_medication')
+            ->get();
+            return response()->json(['status' => 'success', 'patients' => $for_medication], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+            'status' => 'error',
+            'message' => 'Database query failed',
+            'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+            'status' => 'error',
+            'message' => 'An unexpected error occurred',
+            'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function index()
     {
@@ -158,7 +178,7 @@ class MaifController extends Controller
             ]);
 
              Log::info('Removing medication details', ['transaction_id' => $validated['transaction_id'], 'item_id' => $validated['item_id']]);
-             
+
             $get_ID = DB::connection('external_mysql')->table('transaction')
                 ->where('transaction_number', $validated['transaction_id'])
                 ->value('id');
