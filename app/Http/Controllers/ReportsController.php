@@ -56,12 +56,23 @@ class ReportsController extends Controller
         }
     }
 
-    public function Recipients_Report()
+    public function Recipients_Report(Request $request)
     {
         // Fetch all recipients reports
         try {
-            $reports_recipients = DB::table('vw_recipient_dispense')->get();
-            return response()->json(['recipients' => $reports_recipients], 200);
+
+            $validatedInput = $request->validate([
+                'item_id' => 'integer',
+            ]);
+
+            if(!isset($validatedInput['item_id'])){
+                return response()->json(['success'=> false,'message' => 'item_id is required'], 400);
+            }
+
+            $reports_recipients = DB::table('vw_recipient_dispense')
+            ->where('item_id', $validatedInput['item_id'])
+            ->get();
+            return response()->json(['success'=> true,'recipients' => $reports_recipients], 200);
         } catch (\Illuminate\Database\QueryException $e) {
             return response()->json(['error' => 'Database query error', 'message' => $e->getMessage()], 500);
         } catch (\Exception $e) {

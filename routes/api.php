@@ -157,7 +157,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::prefix('reports')->group(function () {
             Route::get('/dispense/monthly', [ReportsController::class, 'Monthly_Dispense']);          // get dispense report
-            Route::get('/dispense/recipient', [ReportsController::class, 'Recipients_Report']);          // get dispense recipient report
+            Route::post('/dispense/recipient', [ReportsController::class, 'Recipients_Report']);          // get dispense recipient report
             Route::get('/dispense/yearly/{year}', [ReportsController::class, 'Monthly_Dispense_By_Year']);           // get dispense yearly report
         });
 
