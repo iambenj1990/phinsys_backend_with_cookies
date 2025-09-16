@@ -21,6 +21,7 @@ return new class extends Migration
             i.po_no AS `po`,
             i.id AS `item_id`,
             CONCAT_WS(' ', i.brand_name, i.generic_name, i.dosage, i.dosage_form) AS `item`,
+            i.expiration_date,
             dt.quantity,
 
             CONCAT_WS(' ', c.lastname, c.firstname, c.middlename, c.ext) AS `recipient_name`,
