@@ -62,15 +62,16 @@ class ReportsController extends Controller
         try {
 
             $validatedInput = $request->validate([
-                'item_id' => 'integer',
+                'item_id' => 'integer|required',
             ]);
 
-            if(!isset($validatedInput['item_id'])){
-                return response()->json(['success'=> false,'message' => 'item_id is required'], 400);
-            }
+            // if(!isset($validatedInput['item_id'])){
+            //     return response()->json(['success'=> false,'message' => 'item_id is required'], 400);
+            // }
 
             $reports_recipients = DB::table('vw_recipient_dispense')
             ->where('item_id', $validatedInput['item_id'])
+            ->where('transaction_id','NOT LIKE','%RIS%')
             ->get();
             return response()->json(['success'=> true,'recipients' => $reports_recipients], 200);
         } catch (\Illuminate\Database\QueryException $e) {
@@ -100,6 +101,7 @@ class ReportsController extends Controller
             $reports_recipients = DB::table('vw_recipient_dispense')
                 ->whereYear('transaction_date', $year)
                 ->whereMonth('transaction_date', $month)
+                  ->where('transaction_id','NOT LIKE','%RIS%')
                 ->get();
             return response()->json(['recipients' => $reports_recipients], 200);
         } catch (\Illuminate\Database\QueryException $e) {
