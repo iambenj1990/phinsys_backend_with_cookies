@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Http\Controllers\OfflineModeController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\MaifController;
@@ -195,6 +196,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/medication/new', [MaifController::class, 'store_medication_details']); // Store new medication
             Route::post('/medication/status', [MaifController::class, 'store_medication']); // Store new medication
             Route::post('/medication/order',[MaifController::class, 'remove_order_medication_details']); //remove selected order
+        });
+
+        Route::prefix('offline')->group(function(){
+            Route::get('/data', [OfflineModeController::class, 'GetDBData']);
         });
 
 });
