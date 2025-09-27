@@ -24,4 +24,6 @@ class daily_inventory extends Model
     ];
 
     
+
+
 }

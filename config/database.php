@@ -62,6 +62,26 @@ return [
             ]) : [],
         ],
 
+            'offline' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL_offline'),
+            'host' => env('DB_HOST_offline', '127.0.0.1'),
+            'port' => env('DB_PORT_offline', '3306'),
+            'database' => env('DB_DATABASE_offline', 'laravel'),
+            'username' => env('DB_USERNAME_offline', 'root'),
+            'password' => env('DB_PASSWORD_offline', ''),
+            'unix_socket' => env('DB_SOCKET_offline', ''),
+            'charset' => env('DB_CHARSET_offline', 'utf8mb4'),
+            'collation' => env('DB_COLLATION_offline', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
             'external_mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_EXT_URL'),
