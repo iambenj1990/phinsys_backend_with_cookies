@@ -22,11 +22,12 @@ use App\Http\Controllers\DailyTransactionsController;
 use App\Http\Controllers\RequisitionIssuanceSlipController;
 use App\Models\RequisitionIssuanceSlip;
 
-Route::post('/user/login', [SystemUserController::class, 'login_User']);
+// Route::post('/login', [SystemUserController::class, 'login_User']);
+//   Route::post('/logout', [SystemUserController::class, 'logoutUser']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
-        Route::post('/user/logout', [SystemUserController::class, 'logoutUser']);
+
 
         Route::prefix('customers')->group(function () {
             Route::get('/', [CustomersController::class, 'index']);                                 // Fetch all customers
@@ -105,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         Route::prefix('system')->group(function () {
+            Route::post('/user/autheticated', [SystemUserController::class, 'getAuthenticatedUser']);           // User login
             Route::get('/users', [SystemUserController::class, 'index']);              // Get all users
             Route::get('/user/profile/{id}', [SystemUserController::class, 'show']);          // Get a specific user
             Route::post('/user/new', [SystemUserController::class, 'store']);           // Create a new user

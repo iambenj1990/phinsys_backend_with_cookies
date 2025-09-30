@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SystemUserController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::post('/login', [SystemUserController::class, 'login_User']);
+Route::post('/logout', [SystemUserController::class, 'logoutUser']);

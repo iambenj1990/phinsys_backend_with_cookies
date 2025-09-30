@@ -15,6 +15,8 @@ class Kernel extends HttpKernel
         \Illuminate\Http\Middleware\TrustProxies::class,
 
 
+          // ✅ Add CORS handler (required for cross-origin requests)
+        \Illuminate\Http\Middleware\HandleCors::class,
 
 
         // Validates the size of incoming POST requests
@@ -33,15 +35,15 @@ class Kernel extends HttpKernel
         'web' => [
             // Manages session state, CSRF protection, and cookies
             // \App\Http\Middleware\EncryptCookies::class,
-            // \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            // \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
 
             // // Required for Laravel Sanctum SPA authentication
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
 
-            // \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            // \App\Http\Middleware\VerifyCsrfToken::class,
-            // \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
         'api' => [
