@@ -25,7 +25,7 @@ use App\Models\RequisitionIssuanceSlip;
 // Route::post('/login', [SystemUserController::class, 'login_User']);
 //   Route::post('/logout', [SystemUserController::class, 'logoutUser']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('web','auth:sanctum')->group(function () {
 
 
 
@@ -106,7 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         Route::prefix('system')->group(function () {
-            Route::post('/user/autheticated', [SystemUserController::class, 'getAuthenticatedUser']);           // User login
+            Route::get('/user/authenticated', [SystemUserController::class, 'getAuthenticatedUser']);           // User login
             Route::get('/users', [SystemUserController::class, 'index']);              // Get all users
             Route::get('/user/profile/{id}', [SystemUserController::class, 'show']);          // Get a specific user
             Route::post('/user/new', [SystemUserController::class, 'store']);           // Create a new user
