@@ -23,7 +23,7 @@ class SystemUserController extends Controller
 
             $System_users = User::orderBy('id', 'desc')
                 ->get();
-            return response()->json(['success' => true, 'users' =>  $System_users]);
+            return response()->json(['success' => true, 'users' => $System_users]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -53,7 +53,7 @@ class SystemUserController extends Controller
         try {
             $System_users = User::where('id', $id)
                 ->get();
-            return response()->json(['success' => true, 'user' =>  $System_users]);
+            return response()->json(['success' => true, 'user' => $System_users]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -157,17 +157,19 @@ class SystemUserController extends Controller
 
             $user->update($validated);
 
-            return response()->json([
-                'success' => true,
-                'user' => $user
-            ]);
-
             AuditTrail::create([
                 'action' => 'Updated User',
                 'table_name' => 'users',
                 'user_id' => $user->id,
                 'changes' => 'Updated user information',
             ]);
+
+            return response()->json([
+                'success' => true,
+                'user' => $user
+            ]);
+
+
 
         } catch (ValidationException $ve) {
             return response()->json([
@@ -201,7 +203,7 @@ class SystemUserController extends Controller
             $user->delete();
             return response()->json([
                 'success' => true,
-                'user' =>  $user
+                'user' => $user
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
@@ -318,7 +320,7 @@ class SystemUserController extends Controller
             'password' => 'required|string',
         ]);
 
-          if (!Auth::attempt($request->only('username', 'password'))) {
+        if (!Auth::attempt($request->only('username', 'password'))) {
             return response()->json(['message' => 'Invalid login'], 401);
         }
 
@@ -330,14 +332,18 @@ class SystemUserController extends Controller
 
     }
 
-     public function logoutUser(Request $request)
+    public function logoutUser(Request $request)
     {
 
         Auth::guard('web')->logout();
+
+        // Delete current API token if exists
+        $request->user()?->currentAccessToken()?->delete();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json([ 'success' => true,'message' => 'Logged out']);
+        return response()->json(['success' => true, 'message' => 'Logged out successfully']);
 
     }
 
@@ -350,6 +356,6 @@ class SystemUserController extends Controller
         return response()->json([
             'success' => true,
             'user' => Auth::user()
-        ],200);
+        ], 200);
     }
 }
