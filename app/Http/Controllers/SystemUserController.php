@@ -327,6 +327,7 @@ class SystemUserController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+        $credentials = $user->credentials;
 
         return response()->json(['success' => true, 'message' => 'User logged in', 'user' => $user], 200);
 
@@ -353,9 +354,11 @@ class SystemUserController extends Controller
 
     public function getAuthenticatedUser()
     {
+        $System_users = Auth::user();
         return response()->json([
             'success' => true,
-            'user' => Auth::user()
+            'user' => $System_users,
+            'credentials' => $System_users->credentials
         ], 200);
     }
 }
