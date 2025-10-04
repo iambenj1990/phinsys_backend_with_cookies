@@ -321,12 +321,24 @@ class SystemUserController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('username', 'password'))) {
-            return response()->json(['message' => 'Invalid login'], 401);
+            return response()->json(['message' => 'Invalid login, Username and Password does not match'], 401);
         }
+        $user = Auth::user();
+
+        // 🚫 Block inactive users
+        if ($user->status === 'Inactive') {
+            Auth::logout(); // clear the session if logged in
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account is inactive. Please contact the administrator.'
+            ], 403);
+        }
+
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
+
+
         $credentials = $user->credentials;
 
         return response()->json(['success' => true, 'message' => 'User logged in', 'user' => $user], 200);
