@@ -193,6 +193,54 @@ class SystemUserController extends Controller
     }
 
 
+    public function changePassword(Request $request)
+{
+    try {
+        
+        $user_id = Auth::user()->id;
+        $user = User::find($user_id);
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'old_password' => 'required|string',
+            'password' => 'required|string|min:8|max:16|confirmed',
+        ]);
+
+        if (!Hash::check($validated['old_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Old password is incorrect'
+            ], 403);
+        }
+
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+
+        AuditTrail::create([
+            'action' => 'Changed Password',
+            'table_name' => 'users',
+            'user_id' => $user->id,
+            'changes' => 'User changed their own password',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully'
+        ]);
+    } catch (\Throwable $th) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred',
+            'error' => $th->getMessage()
+        ], 500);
+    }
+}
+
+
+
     public function destroy($id)
     {
         try {
