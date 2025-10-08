@@ -833,4 +833,41 @@ class ItemsController extends Controller
 
         return response()->json(['items' => $report, 'success' => true], 200);
     }
+
+
+    public function medicinesUnderPO(){
+        try {
+           $items = DB::table('tbl_items')
+           ->select('po_no', DB::raw('count(id) as items_count'), DB::raw('MAX(created_at) as created_at'))
+              ->groupBy('po_no')
+              ->orderBy('created_at', 'desc')
+              ->get();
+
+            return response()->json([
+                'success' => true,
+                'po_no' => $items
+            ], 200);
+        } catch (QueryException $qe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error',
+                'error' => $qe->getMessage()
+            ], 500);
+            //throw $th;
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $th->getMessage()
+            ], 500);
+        }catch (QueryException $qe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error',
+                'error' => $qe->getMessage()
+            ], 500);
+            //throw $th;
+        }
+    }
 }
