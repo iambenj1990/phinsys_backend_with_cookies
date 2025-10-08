@@ -15,41 +15,41 @@ use Illuminate\Validation\ValidationException;
 
 class ItemsController extends Controller
 {
- public function get_name(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'id' => 'required|numeric',
-        ]);
+    public function get_name(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'id' => 'required|numeric',
+            ]);
 
-        $item = Items::where('id', $validated['id'])->first();
+            $item = Items::where('id', $validated['id'])->first();
 
-        return response()->json([
-            'success' => true,
-            'item_name' => $item->generic_name,
-            'amount' => $item->price_per_pcs,
-        ]);
-    } catch (ValidationException $ve) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation error',
-            'errors' => $ve->errors()
-        ], 422);
-    } catch (QueryException $qe) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Database error',
-            'error' => $qe->getMessage()
-        ], 500);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'success' => false,
-            'message' => 'An unexpected error occurred',
-            'error' => $th->getMessage()
-        ], 500);
+            return response()->json([
+                'success' => true,
+                'item_name' => $item->generic_name,
+                'amount' => $item->price_per_pcs,
+            ]);
+        } catch (ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $ve->errors()
+            ], 422);
+        } catch (QueryException $qe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error',
+                'error' => $qe->getMessage()
+            ], 500);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $th->getMessage()
+            ], 500);
+        }
+
     }
-
-}
 
     public function itemList()
     {
@@ -117,7 +117,7 @@ class ItemsController extends Controller
 
             $validated = $request->validate([
                 'from' => 'required|date',
-                'to'   => 'required|date|after_or_equal:from',
+                'to' => 'required|date|after_or_equal:from',
             ]);
 
 
@@ -256,18 +256,19 @@ class ItemsController extends Controller
                 $item->po_no = $request->po_no;
                 $item->save();
             }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'PO number updated successfully.'
-            ], 201);
-
+            
             AuditTrail::create([
                 'action' => 'Updated',
                 'table_name' => 'items',
                 'user_id' => $request->user_id,
                 'changes' => 'Updated PO number: ' . $temp_po . ' to ' . $request->po_no
             ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'PO number updated successfully.'
+            ], 201);
+
+
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -753,11 +754,11 @@ class ItemsController extends Controller
 
         $validated = $request->validate([
             'from' => 'required|date',
-            'to'   => 'required|date|after_or_equal:from',
+            'to' => 'required|date|after_or_equal:from',
         ]);
 
         $from = $validated['from'];
-        $to   = $validated['to'];
+        $to = $validated['to'];
 
         $report = DB::table('tbl_items as itms')
             ->select(
@@ -835,13 +836,14 @@ class ItemsController extends Controller
     }
 
 
-    public function medicinesUnderPO(){
+    public function medicinesUnderPO()
+    {
         try {
-           $items = DB::table('tbl_items')
-           ->select('po_no', DB::raw('count(id) as items_count'), DB::raw('MAX(created_at) as created_at'))
-              ->groupBy('po_no')
-              ->orderBy('created_at', 'desc')
-              ->get();
+            $items = DB::table('tbl_items')
+                ->select('po_no', DB::raw('count(id) as items_count'), DB::raw('MAX(created_at) as created_at'))
+                ->groupBy('po_no')
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -861,7 +863,7 @@ class ItemsController extends Controller
                 'message' => 'An unexpected error occurred',
                 'error' => $th->getMessage()
             ], 500);
-        }catch (QueryException $qe) {
+        } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
