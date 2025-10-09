@@ -108,6 +108,7 @@ Route::middleware('web','auth:sanctum')->group(function () {
 
         Route::prefix('system')->group(function () {
             Route::get('/user/authenticated', [SystemUserController::class, 'getAuthenticatedUser']);           // User login
+            Route::post('/user/changepassword',[SystemUserController::class,'changePassword']);
             Route::get('/users', [SystemUserController::class, 'index']);              // Get all users
             Route::get('/user/profile/{id}', [SystemUserController::class, 'show']);          // Get a specific user
             Route::post('/user/new', [SystemUserController::class, 'store']);           // Create a new user

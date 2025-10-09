@@ -193,22 +193,27 @@ class SystemUserController extends Controller
     }
 
 
-    public function changePassword(Request $request)
+  public function changePassword(Request $request)
 {
     try {
-        
-        $user_id = Auth::user()->id;
-        $user = User::find($user_id);
-
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
-        }
-
+        // ✅ Validate input (using confirm_password instead of password_confirmation)
         $validated = $request->validate([
             'old_password' => 'required|string',
-            'password' => 'required|string|min:8|max:16|confirmed',
+            'password' => 'required|string|min:8|max:16',
+            'confirm_password' => 'required|string|same:password',
         ]);
 
+        // ✅ Get authenticated user
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // ✅ Check old password
         if (!Hash::check($validated['old_password'], $user->password)) {
             return response()->json([
                 'success' => false,
@@ -216,9 +221,20 @@ class SystemUserController extends Controller
             ], 403);
         }
 
-        $user->password = Hash::make($validated['password']);
-        $user->save();
+        // ✅ Prevent same password reuse
+        if (Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'New password cannot be the same as the old password'
+            ], 422);
+        }
 
+        // ✅ Update password
+        $user->update([
+            'password' => Hash::make($validated['password'])
+        ]);
+
+        // ✅ Log in audit trail
         AuditTrail::create([
             'action' => 'Changed Password',
             'table_name' => 'users',
@@ -231,13 +247,14 @@ class SystemUserController extends Controller
             'message' => 'Password changed successfully'
         ]);
     } catch (\Throwable $th) {
+        Log::error('Password change error: ' . $th->getMessage());
         return response()->json([
             'success' => false,
-            'message' => 'An error occurred',
-            'error' => $th->getMessage()
+            'message' => 'An error occurred while changing password',
         ], 500);
     }
 }
+
 
 
 
