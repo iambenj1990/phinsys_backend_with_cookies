@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Items;
 use App\Models\AuditTrail;
 use GrahamCampbell\ResultType\Success;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -256,7 +257,7 @@ class ItemsController extends Controller
                 $item->po_no = $request->po_no;
                 $item->save();
             }
-            
+
             AuditTrail::create([
                 'action' => 'Updated',
                 'table_name' => 'items',
@@ -554,7 +555,45 @@ class ItemsController extends Controller
     public function destroy($id)
     {
         try {
-            Items::where('id', $id)->delete();
+
+           $Item = Items::where('id', $id)->first();
+
+            if (!$Item) {
+                return response()->json(['success' => false, 'message' => 'item not found'], 404);
+            }
+
+            $hasTransactions = DB::table('tbl_daily_transactions')
+                ->where('item_id', $id)
+                ->exists();
+
+             if ($hasTransactions) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete this medicine because it already has dispensing records.'
+            ], 400);
+        }
+
+           $Item->delete();
+
+
+        $dailyInventories = DB::table('tbl_daily_inventory')
+                ->where('stock_id', $id)
+                ->exists();
+
+            if ($dailyInventories) {
+                DB::table('tbl_daily_inventory')
+                    ->where('stock_id', $id)
+                    ->delete();
+            }
+
+
+            AuditTrail::create([
+                'action' => 'Delete',
+                'table_name' => 'Items',
+                'user_id' => Auth::id(),
+                'changes' => 'Deleted Item:' . $Item->toArray(),
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'item deleted successfully'
