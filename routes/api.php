@@ -100,6 +100,7 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::get('/temp/po',[ItemsController::class,'TempPOlist']); // Get all temporary items
             Route::put('/temp/po/{tempno}', [ItemsController::class,'UpdateTempPO']); // Update temporary P.O.
             Route::post('/stockcard', [ItemsController::class, 'stockCard']); // Get stock card for an item
+            Route::post('/stockcard/item', [ItemsController::class, 'stockCardbyID']); // Get stock card for an item
             Route::post('/inventory/bydate',[ItemsController::class,'InventoryRangeDate']);
             Route::post('/name', [ItemsController::class, 'get_name']);
             Route::get('/po/list',[ItemsController::class,'medicinesUnderPO']); //get list of medicines under PO with items count

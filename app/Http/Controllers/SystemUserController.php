@@ -385,6 +385,7 @@ class SystemUserController extends Controller
             'password' => 'required|string',
         ]);
 
+
         if (!Auth::attempt($request->only('username', 'password'))) {
             return response()->json(['message' => 'Invalid login, Username and Password does not match'], 401);
         }
@@ -399,12 +400,7 @@ class SystemUserController extends Controller
             ], 403);
         }
 
-
         $request->session()->regenerate();
-
-
-
-        $credentials = $user->credentials;
 
         return response()->json(['success' => true, 'message' => 'User logged in', 'user' => $user], 200);
 

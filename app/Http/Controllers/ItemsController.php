@@ -788,6 +788,27 @@ class ItemsController extends Controller
         ], 200);
     }
 
+     public function stockCardbyID(Request $request)
+    {
+
+        $request->validate([
+            'item_id' => 'required|exists:tbl_items,id',
+        ]);
+
+        $item_id = $request->item_id;
+
+        $stockCard = DB::table('vw_stockcardbyitem')
+            ->where('item_id', $item_id)
+            // ->orderBy('transaction_date', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'stockCard' => $stockCard,
+            'message' => 'Stock card retrieved successfully'
+        ], 200);
+    }
+
     public function InventoryRangeDate(Request $request)
     {
 
