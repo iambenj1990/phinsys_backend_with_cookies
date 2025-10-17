@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+
+
 use App\Models\AuditTrail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
+use PhpParser\Node\Stmt\TryCatch;
 
 class AuditController extends Controller
 {
@@ -11,69 +17,91 @@ class AuditController extends Controller
     // Get all audit logs
     public function index()
     {
-        $logs = AuditTrail::latest()->get();
-        return response()->json($logs);
+        try{
+            $logs = AuditTrail::latest()->get();
+        return response()->json(['success' => true, 'logs'=>$logs], 200);
+        } catch (\Throwable $th) {
+         return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+        }
+
     }
 
     // Store a new audit log
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'action' => 'required|string',
-            'table_name' => 'required|string',
-            'user_id' => 'required|exists:users,id',
-            'changes' => 'required|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'action' => 'required|string',
+                'table_name' => 'required|string',
+                'user_id' => 'required|exists:users,id',
+                'changes' => 'required|string',
+            ]);
 
-        $log = AuditTrail::create($validated);
+            $validated['user_id'] = Auth::id();
 
-        return response()->json([
-            'message' => 'Audit log created successfully.',
-            'data' => $log
-        ], 201);
+            $log = AuditTrail::create($validated);
+
+            return response()->json([
+                'message' => 'Audit log created successfully.',
+                'data' => $log
+            ], 201);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+        } catch (QueryException $qe) {
+            return response()->json(['success' => false, 'message' => 'Database error: ' . $qe->getMessage()], 500);
+        } catch (ValidationException $ve) {
+            return response()->json(['success' => false, 'message' => 'Validation error: ' . $ve->errors()], 422);
+        }
     }
 
     // Show a specific audit log
-    public function show($id)
+    public function show(Request $request)
     {
-        $log = AuditTrail::where('id', $id)->get();
-        return response()->json($log);
+
+        try {
+            $validation = $request->validate(['id' => 'required|integer|exists:audit_trails,id']);
+            $log = AuditTrail::findOrFail($validation['id']);
+            return response()->json(['success' => true, 'log' => $log], 200);
+        } catch (ValidationException $ve) {
+            return response()->json(['success' => false, 'message' => 'Validation error: ' . $ve->errors()], 422);
+        } catch (QueryException $qe) {
+            return response()->json(['success' => false, 'message' => 'Database error: ' . $qe->getMessage()], 500);
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+        }
     }
 
-    public function showAllLogs($user_id)
+    public function showAllLogs(Request $request)
     {
-        $log = AuditTrail::where('user_id', $user_id)->get();
-        return response()->json($log);
+
+
+        try {
+            $validator = $request->validate([ 'user_id' => 'required|integer|exists:users,id']);
+
+            $logs = AuditTrail::where('user_id', $validator['user_id'])
+            ->latest()
+            ->get();
+
+            return response()->json(['success' => true, 'logs' => $logs], 200);
+        } catch (ValidationException $ve) {
+            return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $ve->errors()
+            ], 422);
+        } catch (QueryException $qe) {
+            return response()->json([
+            'success' => false,
+            'message' => 'Database error: ' . $qe->getMessage()
+            ], 500);
+        } catch (\Throwable $th) {
+            return response()->json([
+            'success' => false,
+            'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
-    // Update a specific audit log (rarely used in audit logs)
-    public function update(Request $request, $id)
-    {
-        $log = AuditTrail::findOrFail($id);
 
-        $validated = $request->validate([
-            'action' => 'sometimes|string|max:255',
-            'table_name' => 'sometimes|string|max:255',
-            'user_id' => 'sometimes|integer',
-            'changes' => 'nullable|string',
-        ]);
-
-        $log->update($validated);
-
-        return response()->json([
-            'message' => 'Audit log updated successfully.',
-            'data' => $log
-        ]);
-    }
-
-    // Delete a specific audit log (not recommended)
-    public function destroy($id)
-    {
-        $log = AuditTrail::findOrFail($id);
-        $log->delete();
-
-        return response()->json([
-            'message' => 'Audit log deleted successfully.'
-        ]);
-    }
 }

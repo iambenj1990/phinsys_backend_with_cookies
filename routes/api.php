@@ -25,6 +25,9 @@ use App\Models\RequisitionIssuanceSlip;
 // Route::post('/login', [SystemUserController::class, 'login_User']);
 //   Route::post('/logout', [SystemUserController::class, 'logoutUser']);
 
+Route::middleware('web')->post('/login', [SystemUserController::class, 'login_User']);
+Route::middleware('web')->post('/logout', [SystemUserController::class, 'logoutUser']);
+
 Route::middleware('web','auth:sanctum')->group(function () {
 
 
@@ -186,11 +189,10 @@ Route::middleware('web','auth:sanctum')->group(function () {
 
 
         Route::prefix('logs')->group(function () {
-            Route::get('/audit/logs', [AuditController::class, 'index']); // Get all audit logs
-            Route::post('/audit/logs', [AuditController::class, 'store']); // Store a new audit log
-            Route::get('/audit/logs/{id}', [AuditController::class, 'show']); // Show a specific audit log
-            Route::put('/audit/logs/{id}', [AuditController::class, 'update']); // Update a specific audit log
-            Route::delete('/audit/logs/{id}', [AuditController::class, 'destroy']); // Delete a specific audit log
+            Route::get('/', [AuditController::class, 'index']);                      // Get all audit logs
+            Route::post('/new', [AuditController::class, 'store']);                  // Create a new audit log
+            Route::post('/show', [AuditController::class, 'show']);             // Show a specific audit log
+            Route::post('/user', [AuditController::class, 'showAllLogs']);                // Show audit log by a specific user
         });
 
         Route::prefix('maif')->group(function () {
