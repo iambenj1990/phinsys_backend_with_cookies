@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\AuditTrail;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -401,6 +402,13 @@ class SystemUserController extends Controller
         }
 
         $request->session()->regenerate();
+
+         AuditTrail::create([
+                'action' => 'Login',
+                'table_name' => 'Users',
+                'user_id' => Auth::id(),
+                'changes' => 'User logged in '. Carbon::now(),
+            ]);
 
         return response()->json(['success' => true, 'message' => 'User logged in', 'user' => $user], 200);
 

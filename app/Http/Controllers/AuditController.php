@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 
 
 use App\Models\AuditTrail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
-use PhpParser\Node\Stmt\TryCatch;
+
 
 class AuditController extends Controller
 {
@@ -19,6 +20,12 @@ class AuditController extends Controller
     {
         try{
             $logs = AuditTrail::latest()->get();
+
+           foreach($logs as $log){
+            $user=User::find($log->user_id);
+            $log->username =$user ? $user->username:'unknown user';
+           }
+
         return response()->json(['success' => true, 'logs'=>$logs], 200);
         } catch (\Throwable $th) {
          return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
