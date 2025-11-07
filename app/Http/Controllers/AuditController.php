@@ -82,7 +82,6 @@ class AuditController extends Controller
     public function showAllLogs(Request $request)
     {
 
-
         try {
             $validator = $request->validate([ 'user_id' => 'required|integer|exists:users,id']);
 

@@ -83,7 +83,7 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::get('/transaction/{transaction_id}',[DailyTransactionsController::class,'showLatestOrder']); //show order of customer
             Route::post('/transactions/last',[DailyTransactionsController::class,'getCustomersWithLatestTransactions']);
             Route::get('/transaction/unique/{customer_id}',[DailyTransactionsController::class,'getTransactionID']); //show unique transaction numbers  of customer
-            Route::delete('/order/{id}', [DailyTransactionsController::class,'destroy']);                       // Delete a orders
+            Route::post('/order', [DailyTransactionsController::class,'destroy']);                       // Delete a orders
         });
 
 

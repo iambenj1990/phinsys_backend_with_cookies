@@ -425,6 +425,13 @@ class SystemUserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+           AuditTrail::create([
+                'action' => 'Logout',
+                'table_name' => 'Users',
+                'user_id' => Auth::id(),
+                'changes' => 'User logged out '. Carbon::now(),
+            ]);
+
         return response()->json(['success' => true, 'message' => 'Logged out successfully']);
 
     }

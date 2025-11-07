@@ -277,10 +277,17 @@ class DailyTransactionsController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         try {
-            $transactions = Transactions::where('id', $id)->firstOrFail();
+
+             $validatedID = $request->validate(
+                [
+                    'id' => 'required|exists:tbl_daily_transactions,id',
+                ]
+            );
+
+            $transactions = Transactions::where('id', $validatedID['id'])->firstOrFail();
             $transactions->delete();
             return response()->json([
                 'success' => true,
