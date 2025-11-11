@@ -335,10 +335,17 @@ class CustomersController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         try {
-            $customer = Customers::where('id', $id);
+
+             $validationInput = $request->validate(
+                [
+                    'id' => 'required|numeric',
+                ]
+            );
+
+            $customer = Customers::where('id', $validationInput['id']);
             if (!$customer) {
                 return response()->json(['success' => false, 'message' => 'Client not found'], 404);
             }

@@ -62,10 +62,15 @@ class UnitController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $validationInput = $request->validate(
+           [
+               'id' => 'required|numeric',
+           ]
+       );
         try {
-            $unit = Unit::find($id);
+            $unit = Unit::find($validationInput['id']);
             if (!$unit) {
                 return response()->json(['message' => 'Unit not found'], 404);
             }

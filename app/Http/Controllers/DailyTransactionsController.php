@@ -494,7 +494,7 @@ class DailyTransactionsController extends Controller
                 ->get();
 
             if ($list_level->isEmpty()) {
-                return response()->json('No list Available...', 400);
+                return response()->json('No previous transactions found...', 404);
             }
 
             return response()->json([

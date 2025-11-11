@@ -30,20 +30,17 @@ Route::middleware('web')->post('/logout', [SystemUserController::class, 'logoutU
 
 Route::middleware('web','auth:sanctum')->group(function () {
 
-
-
         Route::prefix('customers')->group(function () {
             Route::get('/', [CustomersController::class, 'index']);                                 // Fetch all customers
             Route::get('/{id}', [CustomersController::class, 'show']);                              // Fetch a single customer by ID
             Route::post('/', [CustomersController::class, 'store']);                                // Create a new customer
             Route::put('/{id}', [CustomersController::class, 'update']);                            // Update an existing customer by ID
-            Route::delete('/{id}', [CustomersController::class, 'destroy']);
+            Route::post('/remove', [CustomersController::class, 'destroy']);
             Route::get('/transactions/{id}',[DailyTransactionsController::class,'Customer_Transaction_List']);
             Route::get('/transactions/{id}/list/{trans_id}',[DailyTransactionsController::class,'Customer_Transaction_List_Breakdown']);
             Route::post('/list/dates',[CustomersController::class, 'CustomerByDate']);
             Route::post('/bulk',[CustomersController::class, 'store_bulk']);
         });
-
 
         Route::prefix('daily')->group(function () {
             Route::get('/', [DailyInventoryController::class, 'index']);                                           // Get all transactions
@@ -95,8 +92,8 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::post('/new', [ItemsController::class, 'store']);                  // Create a new item
             Route::post('/batch/new', [ItemsController::class, 'batchstore']);
             Route::put('/{id}', [ItemsController::class, 'update']);             // Update an item
-            Route::delete('/{id}', [ItemsController::class, 'destroy']);                      // Delete an item by ID
-            Route::delete('/po/remove/{po_number}', [ItemsController::class, 'destroyItemsByPO']);  // Delete items by PO number
+            Route::post('/remove', [ItemsController::class, 'destroy']);                      // Delete an item by ID
+            Route::post('/po/remove', [ItemsController::class, 'destroyItemsByPO']);  // Delete items by PO number
             Route::get('/stock/filteredlist', [ItemsController::class, 'getJoinedItemswitInventoryfiltered']);
             Route::get('/stock/list', [ItemsController::class, 'getJoinedItemswitInventory']);
             Route::get('/generate/tempno', [ItemsController::class, 'TemporaryID']);
@@ -138,7 +135,7 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::post('/library/units', [UnitController::class, 'store']); // Insert new unit
             Route::get('/library/units/{id}', [UnitController::class, 'show']); // Get single unit by ID
             Route::put('/library/units/{id}', [UnitController::class, 'update']); // Update a unit
-            Route::delete('/library/units/{id}', [UnitController::class, 'destroy']); // Delete a unit
+            Route::post('/library/units/remove', [UnitController::class, 'destroy']); // Delete a unit
 
             Route::get('/library/dosages', [DosageTypeController::class, 'getDosageTypes']); // Get all units
             Route::post('/library/dosages', [DosageTypeController::class, 'store']); // Insert new unit
@@ -147,7 +144,6 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::post('/library/dosages/remove', [DosageTypeController::class, 'removeDosageType']);
             // Route::delete('/library/dosages/{id}', [DosageTypeController::class, 'destroy']);  Delete a unit
 
-
             Route::get('/configuration/{id}', [ConfigurationsController::class, 'show']); // Get all config
             Route::post('/configuration', [ConfigurationsController::class, 'store']); // Insert new config
             Route::put('/configuration/{id}/config', [ConfigurationsController::class, 'updateConfig']); // Update config
@@ -155,14 +151,12 @@ Route::middleware('web','auth:sanctum')->group(function () {
 
         });
 
-
         Route::prefix('indicators')->group(function () {
             Route::post('/open', [IndicatorLibraryController::class, 'store']);          // Create a new indicators OPEN/CLOSE for today
             Route::put('/close', [IndicatorLibraryController::class, 'update']);        // Update an existing indicator
             Route::get('/current', [IndicatorLibraryController::class, 'getCurrentStatus']); //Get Indicator for Today
 
         });
-
 
         Route::prefix('reports')->group(function () {
             Route::get('/dispense/monthly', [ReportsController::class, 'Monthly_Dispense']);          // get dispense report
@@ -183,10 +177,7 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::get('/customers/perbrgy', [DashboardController::class, 'dashboard_customers_barangay']);           // get dispense yearly report
             Route::get('/customers/age', [DashboardController::class, 'dashboard_customers_ages']);           // get dispense yearly report
             Route::get('/customers/gender', [DashboardController::class, 'dashboard_customers_genders']);           // get dispense yearly report
-
         });
-
-
 
         Route::prefix('logs')->group(function () {
             Route::get('/', [AuditController::class, 'index']);                      // Get all audit logs

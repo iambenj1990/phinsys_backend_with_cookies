@@ -511,8 +511,17 @@ class ItemsController extends Controller
     }
 
 
-    public function destroyItemsByPO($po_number)
+    public function destroyItemsByPO(Request $request)
     {
+
+        $validationInput = $request->validate(
+            [
+                'po_no' => 'required|string',
+            ]
+        );
+
+        $po_number = $validationInput['po_no'];
+
         try {
             $items = Items::where('po_no', $po_number)
                 ->get();
@@ -552,9 +561,17 @@ class ItemsController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         try {
+
+            $validationInput = $request->validate(
+                [
+                    'id' => 'required|numeric',
+                ]
+            );
+
+            $id = $validationInput['id'];
 
            $Item = Items::where('id', $id)->first();
 
@@ -591,7 +608,7 @@ class ItemsController extends Controller
                 'action' => 'Delete',
                 'table_name' => 'Items',
                 'user_id' => Auth::id(),
-                'changes' => 'Deleted Item:' . $Item->toArray(),
+                'changes' => 'Deleted Item:' . json_encode($Item->toArray()),
             ]);
 
             return response()->json([
