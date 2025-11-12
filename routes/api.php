@@ -188,7 +188,8 @@ Route::middleware('web','auth:sanctum')->group(function () {
 
         Route::prefix('maif')->group(function () {
             Route::get('/patients', [MaifController::class, 'index']); // Fetch patients from external database
-            Route::get('/patients/medication', [MaifController::class, 'get_patients']); // Fetch patients for medication
+            Route::get('/patients/medication', [MaifController::class, 'get_patients_medication']); // Fetch patients for medication
+             Route::get('/patients/laboratory', [MaifController::class, 'get_patients_laboratory']); // Fetch patients for laboratory
             Route::post('/transactions/latest', [MaifController::class, 'getPatientLatestTransactions']); // Get latest transactions for a patient
             Route::post('/transaction/list', [DailyTransactionsController::class, 'Customer_Transaction']); // Store new medication
             Route::post('/medication/new', [MaifController::class, 'store_medication_details']); // Store new medication

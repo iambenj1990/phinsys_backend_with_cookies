@@ -15,23 +15,46 @@ class MaifController extends Controller
 
 {
     //
-    public function get_patients(){
+    public function get_patients_medication()
+    {
         try {
             $for_medication = DB::connection('external_mysql')
-            ->table('vw_patient_medication')
-            ->get();
+                ->table('vw_patient_medication')
+                ->get();
             return response()->json(['status' => 'success', 'patients' => $for_medication], 200);
         } catch (QueryException $e) {
             return response()->json([
-            'status' => 'error',
-            'message' => 'Database query failed',
-            'error' => $e->getMessage()
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
             return response()->json([
-            'status' => 'error',
-            'message' => 'An unexpected error occurred',
-            'error' => $e->getMessage()
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+     public function get_patients_laboratory()
+    {
+        try {
+            $for_laboratory = DB::connection('external_mysql')
+                ->table('vw_patient_laboratory')
+                ->get();
+            return response()->json(['status' => 'success', 'patients' => $for_laboratory], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -55,9 +78,8 @@ class MaifController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|integer',
         ]);
-
         $transactionNumber = DB::connection('external_mysql')
-            ->table('transaction as trx')
+            ->table('transactions as trx')
             ->where('trx.patient_id', $validated['patient_id'])
             ->orderByDesc('trx.transaction_date') // or trx.id if that's reliable
             ->value('trx.transaction_number');
@@ -81,7 +103,7 @@ class MaifController extends Controller
             ]);
 
 
- $get_ID = DB::connection('external_mysql')->table('transaction')
+            $get_ID = DB::connection('external_mysql')->table('transactions')
                 ->where('transaction_number', $validated['transaction_id'])
                 ->value('id');
 
@@ -90,7 +112,7 @@ class MaifController extends Controller
                 'transaction_id' => $get_ID,
                 'status' => $validated['status'],
                 'created_at' => now(),
-                'updated_at' =>now()
+                'updated_at' => now()
             ]);
 
             return response()->json(['status' => 'success', 'message' => 'Medication status Done'], 201);
@@ -130,14 +152,14 @@ class MaifController extends Controller
 
             ]);
 
-            $get_ID = DB::connection('external_mysql')->table('transaction')
+            $get_ID = DB::connection('external_mysql')->table('transactions')
                 ->where('transaction_number', $validated['transaction_id'])
                 ->value('id');
 
 
 
             DB::connection('external_mysql')->table('medication_details')->insert([
-                'item_id'=> $validated['item_id'],
+                'item_id' => $validated['item_id'],
                 'item_description' => $validated['item_description'],
                 'patient_id' => $validated['patient_id'],
                 'quantity' => $validated['quantity'],
@@ -177,13 +199,13 @@ class MaifController extends Controller
                 'item_id' => 'required|integer'
             ]);
 
-             Log::info('Removing medication details', ['transaction_id' => $validated['transaction_id'], 'item_id' => $validated['item_id']]);
+            Log::info('Removing medication details', ['transaction_id' => $validated['transaction_id'], 'item_id' => $validated['item_id']]);
 
-            $get_ID = DB::connection('external_mysql')->table('transaction')
+            $get_ID = DB::connection('external_mysql')->table('transactions')
                 ->where('transaction_number', $validated['transaction_id'])
                 ->value('id');
 
-                Log::info('Removing medication details', ['transaction_id' => $get_ID, 'item_id' => $validated['item_id']]);
+            Log::info('Removing medication details', ['transaction_id' => $get_ID, 'item_id' => $validated['item_id']]);
 
             DB::connection('external_mysql')->table('medication_details')
                 ->where('transaction_id', $get_ID)
@@ -205,6 +227,4 @@ class MaifController extends Controller
             ], 500);
         }
     }
-
-
 }
