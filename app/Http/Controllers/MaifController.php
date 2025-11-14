@@ -37,7 +37,7 @@ class MaifController extends Controller
         }
     }
 
-     public function get_patients_laboratory()
+    public function get_patients_laboratory()
     {
         try {
             $for_laboratory = DB::connection('external_mysql')
@@ -108,14 +108,25 @@ class MaifController extends Controller
                 ->value('id');
 
 
-            DB::connection('external_mysql')->table('medication')->insert([
-                'transaction_id' => $get_ID,
-                'status' => $validated['status'],
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            $Trx_Exists = DB::connection('external_mysql')->table('medication')
+                ->where('transaction_id',  $get_ID)
+                ->exists();
 
-            return response()->json(['status' => 'success', 'message' => 'Medication status Done'], 201);
+            if (!$Trx_Exists) {
+                DB::connection('external_mysql')->table('medication')->insert([
+                    'transaction_id' => $get_ID,
+                    'status' => $validated['status'],
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                return response()->json(['status' => 'success', 'message' => 'Medication status Done'], 201);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Medication transaction already exists. No changes made.'
+            ], 200);
+
         } catch (QueryException $e) {
             return response()->json([
                 'status' => 'error',
