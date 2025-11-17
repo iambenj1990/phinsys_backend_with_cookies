@@ -452,16 +452,14 @@ class ItemsController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         try {
-            $item = Items::where('id', $id)->first();
-            if (!$item) {
-                return response()->json(['success' => false, 'message' => 'item not found'], 404);
-            }
+
 
             $validationInput = $request->validate(
                 [
+                    'item_id' => 'required|numeric',
                     'po_no' => 'required|string|max:50',
                     'brand_name' => 'required|string|max:100',
                     'generic_name' => 'required|string|max:100',
@@ -479,7 +477,13 @@ class ItemsController extends Controller
                 ]
             );
 
-            $item->update($validationInput);
+              $item = Items::where('id', $validationInput['item_id'])->first();
+            if (!$item) {
+                return response()->json(['success' => false, 'message' => 'item not found'], 404);
+            }
+
+
+             $item->update($validationInput);
 
             return response()->json([
                 'success' => true,

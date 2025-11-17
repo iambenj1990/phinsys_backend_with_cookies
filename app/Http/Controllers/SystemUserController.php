@@ -416,22 +416,26 @@ class SystemUserController extends Controller
 
     public function logoutUser(Request $request)
     {
+        $user = $request->user();
 
-        Auth::guard('web')->logout();
+        if($user){
+            $userID = $user->id;
+             $user->currentAccessToken()?->delete();
 
-        // Delete current API token if exists
-        $request->user()?->currentAccessToken()?->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-           AuditTrail::create([
+                AuditTrail::create([
                 'action' => 'Logout',
                 'table_name' => 'Users',
                 'user_id' => Auth::id(),
                 'changes' => 'User logged out '. Carbon::now(),
             ]);
+        }
 
+
+        Auth::guard('web')->logout();
+        // Delete current API token if exists
+        $request->user()?->currentAccessToken()?->delete();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return response()->json(['success' => true, 'message' => 'Logged out successfully']);
 
     }

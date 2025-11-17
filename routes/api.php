@@ -91,7 +91,7 @@ Route::middleware('web','auth:sanctum')->group(function () {
             Route::get('/expire/list',[ItemsController::class,'getExpiringStock']); // Get all expiring item
             Route::post('/new', [ItemsController::class, 'store']);                  // Create a new item
             Route::post('/batch/new', [ItemsController::class, 'batchstore']);
-            Route::put('/{id}', [ItemsController::class, 'update']);             // Update an item
+            Route::post('/update', [ItemsController::class, 'update']);             // Update an item
             Route::post('/remove', [ItemsController::class, 'destroy']);                      // Delete an item by ID
             Route::post('/po/remove', [ItemsController::class, 'destroyItemsByPO']);  // Delete items by PO number
             Route::get('/stock/filteredlist', [ItemsController::class, 'getJoinedItemswitInventoryfiltered']);
