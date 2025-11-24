@@ -49,7 +49,6 @@ class ItemsController extends Controller
                 'error' => $th->getMessage()
             ], 500);
         }
-
     }
 
     public function itemList()
@@ -268,8 +267,6 @@ class ItemsController extends Controller
                 'success' => true,
                 'message' => 'PO number updated successfully.'
             ], 201);
-
-
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -456,7 +453,6 @@ class ItemsController extends Controller
     {
         try {
 
-
             $validationInput = $request->validate(
                 [
                     'item_id' => 'required|numeric',
@@ -477,13 +473,15 @@ class ItemsController extends Controller
                 ]
             );
 
-              $item = Items::where('id', $validationInput['item_id'])->first();
+            $item = Items::where('id', $validationInput['item_id'])->first();
             if (!$item) {
                 return response()->json(['success' => false, 'message' => 'item not found'], 404);
             }
 
+            // Remove fields you don't want to update
+            $data = collect($validationInput)->except(['quantity'])->toArray();
 
-             $item->update($validationInput);
+            $item->update($data);
 
             return response()->json([
                 'success' => true,
@@ -577,7 +575,7 @@ class ItemsController extends Controller
 
             $id = $validationInput['id'];
 
-           $Item = Items::where('id', $id)->first();
+            $Item = Items::where('id', $id)->first();
 
             if (!$Item) {
                 return response()->json(['success' => false, 'message' => 'item not found'], 404);
@@ -587,17 +585,17 @@ class ItemsController extends Controller
                 ->where('item_id', $id)
                 ->exists();
 
-             if ($hasTransactions) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot delete this medicine because it already has dispensing records.'
-            ], 400);
-        }
+            if ($hasTransactions) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete this medicine because it already has dispensing records.'
+                ], 400);
+            }
 
-           $Item->delete();
+            $Item->delete();
 
 
-        $dailyInventories = DB::table('tbl_daily_inventory')
+            $dailyInventories = DB::table('tbl_daily_inventory')
                 ->where('stock_id', $id)
                 ->exists();
 
@@ -809,7 +807,7 @@ class ItemsController extends Controller
         ], 200);
     }
 
-     public function stockCardbyID(Request $request)
+    public function stockCardbyID(Request $request)
     {
 
         $request->validate([
