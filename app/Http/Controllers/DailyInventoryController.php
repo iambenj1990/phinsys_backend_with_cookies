@@ -517,7 +517,7 @@ class DailyInventoryController extends Controller
             if ($hasClosingStatusToday) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Regeneration aborted:Stocks closed. Open today`s stocks to proceed.',
+                    'message' => 'Regeneration aborted:Stocks already closed for current transaction date. Please verify the inventory records.',
                 ], 409); // HTTP 409 Conflict
             }
 
