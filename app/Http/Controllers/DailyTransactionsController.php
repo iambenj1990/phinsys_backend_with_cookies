@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Daily_transactions as Transactions;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 
