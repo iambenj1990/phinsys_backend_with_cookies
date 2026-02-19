@@ -7,11 +7,9 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Daily_transactions as Transactions;
-use App\Models\items;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
-use function PHPUnit\Framework\isEmpty;
+
 
 class DailyTransactionsController extends Controller
 {
