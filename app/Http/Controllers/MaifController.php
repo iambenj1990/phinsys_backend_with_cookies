@@ -19,7 +19,7 @@ class MaifController extends Controller
     {
         try {
             $for_medication = DB::connection('external_mysql')
-                ->table('vw_patient_medication')
+                ->table('vw_patient_medication_new')
                 ->get();
             return response()->json(['status' => 'success', 'patients' => $for_medication], 200);
         } catch (QueryException $e) {
@@ -82,6 +82,7 @@ class MaifController extends Controller
             ->table('transactions as trx')
             ->where('trx.patient_id', $validated['patient_id'])
             ->orderByDesc('trx.transaction_date') // or trx.id if that's reliable
+            ->orderByDesc('trx.id')
             ->value('trx.transaction_number');
 
         if (!$transactionNumber) {
