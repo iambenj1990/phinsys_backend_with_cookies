@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +10,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Log;
+use PhpParser\Node\Stmt\TryCatch;
 
 class MaifController extends Controller
 
@@ -67,6 +68,7 @@ class MaifController extends Controller
             ->join('transaction as trx', 'p.id', '=', 'trx.patient_id')
             ->select('p.*', 'trx.transaction_type', 'trx.status', 'trx.transaction_number')
             ->where('trx.transaction_type', 'Medication')
+            ->whereDate('trx.transaction_date', Carbon::today())
             ->where('trx.status', 'qualified')
             ->get();
 
@@ -78,21 +80,44 @@ class MaifController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|integer',
         ]);
-        $transactionNumber = DB::connection('external_mysql')
-            ->table('transactions as trx')
-            ->where('trx.patient_id', $validated['patient_id'])
-            ->orderByDesc('trx.transaction_date') // or trx.id if that's reliable
-            ->orderByDesc('trx.id')
-            ->value('trx.transaction_number');
 
-        if (!$transactionNumber) {
+        try {
+
+            $transactionNumber = DB::connection('external_mysql')
+                ->table('transactions as trx')
+                ->where('trx.patient_id', $validated['patient_id'])
+                ->orderByDesc('trx.transaction_date') // or trx.id if that's reliable
+                ->orderByDesc('trx.id')
+                ->value('trx.transaction_number');
+
+            if (!$transactionNumber) {
+                return response()->json([
+                    'status' => 'not_found',
+                    'message' => 'No transactions found for this patient'
+                ], 404);
+            }
+
+            return response()->json(['status' => 'success', 'trx_num' => $transactionNumber], 200);
+        } catch (ValidationException $e) {
+
             return response()->json([
-                'status' => 'not_found',
-                'message' => 'No transactions found for this patient'
-            ], 404);
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json(['status' => 'success', 'trx_num' => $transactionNumber], 200);
     }
 
     public function store_medication(Request $request)
@@ -127,7 +152,6 @@ class MaifController extends Controller
                 'status' => 'success',
                 'message' => 'Medication transaction already exists. No changes made.'
             ], 200);
-
         } catch (QueryException $e) {
             return response()->json([
                 'status' => 'error',

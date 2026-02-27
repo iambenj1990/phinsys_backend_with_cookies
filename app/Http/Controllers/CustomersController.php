@@ -156,7 +156,7 @@ class CustomersController extends Controller
                 ->exists();
 
             if ($exists) {
-                    // 🔹 Check if customer already exists
+                    // 🔹 get customer already existed
             $existing_client = Customers::where('firstname', $validationInput['firstname'])
                 ->where('lastname', $validationInput['lastname'])
                 ->where('birthdate', $validationInput['birthdate'])

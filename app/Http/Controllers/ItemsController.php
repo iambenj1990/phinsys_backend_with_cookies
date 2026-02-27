@@ -762,7 +762,6 @@ class ItemsController extends Controller
                 'latest_inventory.Closing_quantity',
                 'tbl_items.expiration_date',
                 'latest_inventory.transaction_date as last_inventory_date',
-
             )
             ->orderBy('tbl_items.generic_name')
             ->orderBy('tbl_items.expiration_date', 'asc')
