@@ -67,9 +67,9 @@ class MaifController extends Controller
             ->table('patient as p')
             ->join('transaction as trx', 'p.id', '=', 'trx.patient_id')
             ->select('p.*', 'trx.transaction_type', 'trx.status', 'trx.transaction_number')
-            ->where('trx.transaction_type', 'Medication')
+            // ->where('trx.transaction_type', 'Medication')
             ->whereDate('trx.transaction_date', Carbon::today())
-            ->where('trx.status', 'qualified')
+            // ->where('trx.status', 'qualified')
             ->get();
 
         return response()->json(['status' => 'success', 'customers' => $data], 200);
@@ -152,6 +152,7 @@ class MaifController extends Controller
                 'status' => 'success',
                 'message' => 'Medication transaction already exists. No changes made.'
             ], 200);
+
         } catch (QueryException $e) {
             return response()->json([
                 'status' => 'error',
@@ -184,8 +185,6 @@ class MaifController extends Controller
                 'transaction_id' => 'required|string',
                 'amount' => 'required|numeric',
                 'item_id' => 'required|integer'
-
-
             ]);
 
             $get_ID = DB::connection('external_mysql')->table('transactions')
