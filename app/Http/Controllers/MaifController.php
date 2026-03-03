@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Log;
-use PhpParser\Node\Stmt\TryCatch;
+
 
 class MaifController extends Controller
 
@@ -86,18 +84,19 @@ class MaifController extends Controller
             $transactionNumber = DB::connection('external_mysql')
                 ->table('transactions as trx')
                 ->where('trx.patient_id', $validated['patient_id'])
+                ->whereBetween('trx.transaction_date', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])
                 ->orderByDesc('trx.transaction_date') // or trx.id if that's reliable
                 ->orderByDesc('trx.id')
                 ->value('trx.transaction_number');
 
             if (!$transactionNumber) {
                 return response()->json([
-                    'status' => 'not_found',
-                    'message' => 'No transactions found for this patient'
+                    'status' => false,
+                    'message' => 'No transactions found for this patient today'
                 ], 404);
             }
 
-            return response()->json(['status' => 'success', 'trx_num' => $transactionNumber], 200);
+            return response()->json(['status' => true, 'trx_num' => $transactionNumber], 200);
         } catch (ValidationException $e) {
 
             return response()->json([
