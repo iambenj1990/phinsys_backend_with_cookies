@@ -123,13 +123,14 @@ class MaifController extends Controller
     {
         try {
             $validated = $request->validate([
-                'transaction_id' => 'required|string',
+                'transaction_id' => 'required|string|exists:external_mysql.transactions,transaction_number',
                 'status' => 'required|string|max:255',
             ]);
 
 
             $get_ID = DB::connection('external_mysql')->table('transactions')
                 ->where('transaction_number', $validated['transaction_id'])
+                ->orderByDesc('id')
                 ->value('id');
 
 
@@ -176,18 +177,19 @@ class MaifController extends Controller
 
             $validated = $request->validate([
 
-                'item_description' => 'required|string|max:150',
-                'patient_id' => 'required|integer|max:100',
+                'item_description' => 'required|string',
+                'patient_id' => 'required|integer',
                 'quantity' => 'required|integer',
-                'unit' => 'required|string|max:100',
+                'unit' => 'required|string',
                 'transaction_date' => 'required|date',
-                'transaction_id' => 'required|string',
+                'transaction_id' => 'required|string|exists:external_mysql.transactions,transaction_number',
                 'amount' => 'required|numeric',
                 'item_id' => 'required|integer'
             ]);
 
             $get_ID = DB::connection('external_mysql')->table('transactions')
                 ->where('transaction_number', $validated['transaction_id'])
+                ->orderByDesc('id')
                 ->value('id');
 
 
