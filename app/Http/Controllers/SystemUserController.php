@@ -100,9 +100,6 @@ class SystemUserController extends Controller
                 'success' => true,
                 'user' => $System_users
             ]);
-
-
-
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -129,14 +126,8 @@ class SystemUserController extends Controller
     {
 
 
+
         try {
-            $user = User::find($id);
-
-            if (!$user) {
-                return response()->json(['success' => false, 'message' => 'User not found'], 404);
-            }
-
-            Log::info('Update User Request:', $request->all()); // Debug incoming data
             $validated = $request->validate([
                 'first_name' => 'required|string|max:100',
                 'last_name' => 'required|string|max:100',
@@ -144,9 +135,15 @@ class SystemUserController extends Controller
                 'position' => 'required|string|max:100',
                 'status' => 'required|string|max:100',
                 'office' => 'required|string|max:100',
-                'username' => 'required|string|max:100|unique:users,username,' . $user->id,
+                'username' => 'required|string|max:100|unique:users,username,' . $id,
                 'password' => 'nullable|string|min:8|max:16|confirmed',
             ]);
+
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            }
 
             // Only update password if it was provided
             if (!empty($validated['password'])) {
@@ -157,6 +154,7 @@ class SystemUserController extends Controller
 
 
             $user->update($validated);
+            $user->refresh();
 
             AuditTrail::create([
                 'action' => 'Updated User',
@@ -169,9 +167,6 @@ class SystemUserController extends Controller
                 'success' => true,
                 'user' => $user
             ]);
-
-
-
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -194,81 +189,87 @@ class SystemUserController extends Controller
     }
 
 
-  public function changePassword(Request $request)
-{
-    try {
-        // ✅ Validate input (using confirm_password instead of password_confirmation)
-        $validated = $request->validate([
-            'old_password' => 'required|string',
-            'password' => 'required|string|min:8|max:16',
-            'confirm_password' => 'required|string|same:password',
-        ]);
-
-        // ✅ Get authenticated user
-        $user = Auth::user();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-
-        // ✅ Check old password
-        if (!Hash::check($validated['old_password'], $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Old password is incorrect'
-            ], 403);
-        }
-
-        // ✅ Prevent same password reuse
-        if (Hash::check($validated['password'], $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'New password cannot be the same as the old password'
-            ], 422);
-        }
-
-        // ✅ Update password
-        $user->update([
-            'password' => Hash::make($validated['password'])
-        ]);
-
-        // ✅ Log in audit trail
-        AuditTrail::create([
-            'action' => 'Changed Password',
-            'table_name' => 'users',
-            'user_id' => $user->id,
-            'changes' => 'User changed their own password',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Password changed successfully'
-        ]);
-    } catch (\Throwable $th) {
-        Log::error('Password change error: ' . $th->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'An error occurred while changing password',
-        ], 500);
-    }
-}
-
-
-
-
-    public function destroy($id)
+    public function changePassword(Request $request)
     {
         try {
-            $user = User::find($id);
+            // ✅ Validate input (using confirm_password instead of password_confirmation)
+            $validated = $request->validate([
+                'old_password' => 'required|string',
+                'password' => 'required|string|min:8|max:16',
+                'confirm_password' => 'required|string|same:password',
+            ]);
+
+            // ✅ Get authenticated user
+            // $user = Auth::user();
+            $user = User::find(Auth::id());
             if (!$user) {
-                return response()->json(['success' => false, 'message' => 'user not found'], 404);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
             }
-            $user->delete();
+
+            // ✅ Check old password
+            if (!Hash::check($validated['old_password'], $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Old password is incorrect'
+                ], 403);
+            }
+
+            // ✅ Prevent same password reuse
+            if (Hash::check($validated['password'], $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New password cannot be the same as the old password'
+                ], 422);
+            }
+
+            // ✅ Update password
+            $user->update([
+                'password' => Hash::make($validated['password'])
+            ]);
+
+            // ✅ Log in audit trail
+            AuditTrail::create([
+                'action' => 'Changed Password',
+                'table_name' => 'users',
+                'user_id' => $user->id,
+                'changes' => 'User changed their own password',
+            ]);
+
             return response()->json([
                 'success' => true,
+                'message' => 'Password changed successfully'
+            ]);
+        } catch (\Throwable $th) {
+            Log::error('Password change error: ' . $th->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while changing password',
+            ], 500);
+        }
+    }
+
+
+    public function destroy(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'id' => 'required|integer|exists:users,id',
+            ]);
+
+            $user = User::find($validated['id']);
+
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            }
+
+            $user->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User deleted successfully',
                 'user' => $user
             ], 200);
         } catch (ValidationException $ve) {
@@ -277,16 +278,13 @@ class SystemUserController extends Controller
                 'message' => 'Validation error',
                 'errors' => $ve->errors()
             ], 422);
-            //throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
                 'error' => $qe->getMessage()
             ], 500);
-            //throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
@@ -295,10 +293,15 @@ class SystemUserController extends Controller
         }
     }
 
-    public function deactivateUser($id)
+    public function deactivateUser(Request $request)
     {
         try {
-            $user = User::find($id);
+
+            $validated = $request->validate([
+                'id' => 'required|integer|exists:users,id',
+            ]);
+
+            $user = User::find($validated['id']);
 
             if (!$user) {
                 return response()->json([
@@ -403,30 +406,29 @@ class SystemUserController extends Controller
 
         $request->session()->regenerate();
 
-         AuditTrail::create([
-                'action' => 'Login',
-                'table_name' => 'Users',
-                'user_id' => Auth::id(),
-                'changes' => 'User logged in '. Carbon::now(),
-            ]);
+        AuditTrail::create([
+            'action' => 'Login',
+            'table_name' => 'Users',
+            'user_id' => Auth::id(),
+            'changes' => 'User logged in ' . Carbon::now(),
+        ]);
 
         return response()->json(['success' => true, 'message' => 'User logged in', 'user' => $user], 200);
-
     }
 
     public function logoutUser(Request $request)
     {
         $user = $request->user();
 
-        if($user){
+        if ($user) {
             $userID = $user->id;
-             $user->currentAccessToken()?->delete();
+            $user->currentAccessToken()?->delete();
 
-                AuditTrail::create([
+            AuditTrail::create([
                 'action' => 'Logout',
                 'table_name' => 'Users',
                 'user_id' => Auth::id(),
-                'changes' => 'User logged out '. Carbon::now(),
+                'changes' => 'User logged out ' . Carbon::now(),
             ]);
         }
 
@@ -437,7 +439,6 @@ class SystemUserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return response()->json(['success' => true, 'message' => 'Logged out successfully']);
-
     }
 
     /**

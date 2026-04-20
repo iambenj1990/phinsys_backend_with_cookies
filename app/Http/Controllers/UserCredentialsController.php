@@ -275,6 +275,7 @@ class UserCredentialsController extends Controller
             ]);
 
             $credential->update($data);
+            
             return response()->json(['success' => true, 'credential' => $credential, 'message' => 'User credential updated successfully.'], 201);
         } catch (ValidationException $ve) {
             return response()->json([
