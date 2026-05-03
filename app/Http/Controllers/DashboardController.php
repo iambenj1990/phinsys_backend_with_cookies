@@ -41,7 +41,7 @@ class DashboardController extends Controller
     private function getRegisteredCustomers($start_date, $end_date)
     {
         try {
-          
+
             $customers = DB::table('tbl_customers')
                 ->select(
                     DB::raw('COUNT(*) as registered_Customers')
@@ -211,6 +211,52 @@ class DashboardController extends Controller
     // --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+    // public function dashboard_medicines_incoming_expired()
+    // {
+    //     try {
+    //         $today = now()->toDateString();
+    //         $monthFromNow = now()->addDays(30)->toDateString();
+
+    //         $expiringItems = DB::table('vw_dailyinventoryinfo')
+    //             ->whereDate('expiration_date', '>=', $today)
+    //             ->whereDate('expiration_date', '<=', $monthFromNow)
+    //             ->where('Openning_quantity', '<>', 0)
+    //             ->where('Closing_quantity', '<>', 0)
+    //             ->where('status', '=', 'OPEN')
+    //             ->count();
+
+    //         $expiredItems = DB::table('vw_dailyinventoryinfo')
+    //             ->whereDate('expiration_date', '<', $today)
+    //             ->where('Openning_quantity', '<>', 0)
+    //             ->where('Closing_quantity', '<>', 0)
+    //             ->where('status', '=', 'OPEN')
+    //             ->count();
+
+    //         return response()->json([
+    //             'expiring' => $expiringItems,
+    //             'expired' => $expiredItems
+    //         ], 200);
+    //     } catch (ValidationException $ve) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation error',
+    //             'errors' => $ve->errors()
+    //         ], 422);
+    //     } catch (QueryException $qe) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Database error',
+    //             'error' => $qe->getMessage()
+    //         ], 500);
+    //     } catch (Throwable $th) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'An unexpected error occurred',
+    //             'error' => $th->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function dashboard_medicines_expired()
     {
         try {
@@ -218,6 +264,7 @@ class DashboardController extends Controller
             $monthFromNow = now()->addDays(30)->toDateString();
 
             $expiringItems = DB::table('vw_dailyinventoryinfo')
+                ->whereDate('expiration_date', '>=', $today)
                 ->whereDate('expiration_date', '<=', $monthFromNow)
                 ->where('Openning_quantity', '<>', 0)
                 ->where('Closing_quantity', '<>', 0)
@@ -235,6 +282,7 @@ class DashboardController extends Controller
                 'expiring' => $expiringItems,
                 'expired' => $expiredItems
             ], 200);
+
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -259,21 +307,20 @@ class DashboardController extends Controller
     public function dashboard_medicines_instock()
     {
         try {
-            $today = now()->toDateString();
-            $monthFromNow = now()->addDays(30)->toDateString();
+            $today = Carbon::today()->toDateString();
+            $monthFromNow = Carbon::today()->addDays(30)->toDateString();
 
-
-
-            $expiredItems = DB::table('vw_dailyinventoryinfo')
-                ->whereDate('expiration_date', '>', $monthFromNow)
-                ->where('Openning_quantity', '<>', 0)
-                ->where('Closing_quantity', '<>', 0)
+            $inStockCount = DB::table('vw_dailyinventoryinfo')
                 ->whereDate('transaction_date', '=', $today)
+                ->where('status', 'OPEN')
+                ->where('Openning_quantity', '>', 0)
+                ->where('Closing_quantity', '>', 0)
+                ->whereDate('expiration_date', '>', $monthFromNow) // Exclude expired & near-expiry
                 ->count();
 
             return response()->json([
 
-                'instock' => $expiredItems
+                'instock' => $inStockCount
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
@@ -305,12 +352,13 @@ class DashboardController extends Controller
 
 
             $countOutOfStockItems = DB::table('vw_dailyinventoryinfo')
-                ->whereDate('expiration_date', '>', $monthFromNow)
-                ->where(function ($query) {
-                    $query->where('Openning_quantity', 0)
-                        ->orWhere('Closing_quantity', 0);
-                })
+                // ->whereDate('expiration_date', '>', $monthFromNow)
                 ->where('status', 'OPEN')
+                ->where(function ($query) {
+                    $query->where('Openning_quantity', '<=', 0)
+                        ->orWhere('Closing_quantity', '<=', 0);
+                })
+
                 ->count();
 
             return response()->json([
@@ -341,38 +389,107 @@ class DashboardController extends Controller
     {
         try {
 
-            if (!is_numeric($threshold) || $threshold <= 0) {
+            // if (!is_numeric($threshold) || $threshold <= 0) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Invalid threshold value. Must be a positive number.'
+            //     ], 422);
+            // }
+
+            // $latestInventoryQuery = DB::table('tbl_daily_inventory as inv1')
+            //     ->select(
+            //         'inv1.id',
+            //         'inv1.stock_id',
+            //         'inv1.Openning_quantity',
+            //         'inv1.Closing_quantity',
+            //         'inv1.quantity_out',
+            //         'inv1.transaction_date',
+            //         'inv1.remarks',
+            //         'inv1.status',
+            //         'inv1.user_id'
+            //     )
+            //     ->whereRaw('inv1.transaction_date = (
+            //     SELECT MAX(inv2.transaction_date)
+            //     FROM tbl_daily_inventory as inv2
+            //     WHERE inv2.stock_id = inv1.stock_id
+            // )')
+            //     ->where(function ($query) use ($threshold) {     // Filter for low quantity stocks that are below the threshold
+            //         $query->whereBetween('inv1.Openning_quantity', [1, $threshold])
+            //             ->whereBetween('inv1.Closing_quantity', [1, $threshold]);
+            //     });
+
+            // // Join with tbl_items to get item info
+            // $data = DB::table('tbl_items as i')
+            //     ->joinSub($latestInventoryQuery, 'latest_inv', function ($join) {
+            //         $join->on('i.id', '=', 'latest_inv.stock_id');
+            //     })
+            //     ->select(
+            //         'latest_inv.id as inventory_id',
+            //         'i.id as item_id',
+            //         'i.po_no',
+            //         'i.brand_name',
+            //         'i.generic_name',
+            //         'i.dosage',
+            //         'i.dosage_form',
+            //         'i.unit',
+            //         'i.quantity as item_quantity',
+            //         'latest_inv.Openning_quantity',
+            //         'latest_inv.Closing_quantity',
+            //         'i.expiration_date',
+            //         'latest_inv.transaction_date as last_inventory_date',
+            //         'latest_inv.status',
+            //         'latest_inv.remarks'
+            //     )
+            //     ->get();
+
+
+
+            // return response()->json([
+            //     'success' => true,
+            //     'stocks' => $data->count()
+            // ], 200);
+
+            $threshold = (float) $threshold;
+
+            if ($threshold <= 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid threshold value. Must be a positive number.'
                 ], 422);
             }
 
-            $latestInventoryQuery = DB::table('tbl_daily_inventory as inv1')
+            // Get the latest inventory date per stock item 
+            $latestDatePerStock = DB::table('tbl_daily_inventory')
+                ->select('stock_id', DB::raw('MAX(transaction_date) as max_date'))
+                ->where('status', 'OPEN')
+                ->groupBy('stock_id');
+
+            // Get the latest inventory row per stock using the above subquery
+            $latestInventory = DB::table('tbl_daily_inventory as inv')
+                ->joinSub($latestDatePerStock, 'latest', function ($join) {
+                    $join->on('inv.stock_id', '=', 'latest.stock_id')
+                        ->on('inv.transaction_date', '=', 'latest.max_date');
+                })
                 ->select(
-                    'inv1.id',
-                    'inv1.stock_id',
-                    'inv1.Openning_quantity',
-                    'inv1.Closing_quantity',
-                    'inv1.quantity_out',
-                    'inv1.transaction_date',
-                    'inv1.remarks',
-                    'inv1.status',
-                    'inv1.user_id'
+                    'inv.id',
+                    'inv.stock_id',
+                    'inv.Openning_quantity',
+                    'inv.Closing_quantity',
+                    'inv.quantity_out',
+                    'inv.transaction_date',
+                    'inv.remarks',
+                    'inv.status',
+                    'inv.user_id'
                 )
-                ->whereRaw('inv1.transaction_date = (
-                SELECT MAX(inv2.transaction_date)
-                FROM tbl_daily_inventory as inv2
-                WHERE inv2.stock_id = inv1.stock_id
-            )')
-                ->where(function ($query) use ($threshold) {     // Filter for low quantity stocks that are below the threshold
-                   $query->whereBetween('inv1.Openning_quantity', [1, $threshold])
-                        ->whereBetween('inv1.Closing_quantity', [1, $threshold]);
+                ->where(function ($query) use ($threshold) {
+                    // Either opening OR closing quantity is low (but not zero/out-of-stock)
+                    $query->whereBetween('inv.Openning_quantity', [1, $threshold])
+                        ->orWhereBetween('inv.Closing_quantity', [1, $threshold]);
                 });
 
-            // Join with tbl_items to get item info
+            // Join with items table
             $data = DB::table('tbl_items as i')
-                ->joinSub($latestInventoryQuery, 'latest_inv', function ($join) {
+                ->joinSub($latestInventory, 'latest_inv', function ($join) {
                     $join->on('i.id', '=', 'latest_inv.stock_id');
                 })
                 ->select(
@@ -392,14 +509,16 @@ class DashboardController extends Controller
                     'latest_inv.status',
                     'latest_inv.remarks'
                 )
+                ->orderBy('i.generic_name')
                 ->get();
-
-
 
             return response()->json([
                 'success' => true,
-                'stocks' => $data->count()
+                'threshold' => $threshold,
+                // 'count' => $data->count(),
+                'stocks' => $data ->count()              // return actual data, not just count
             ], 200);
+
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
@@ -515,15 +634,23 @@ class DashboardController extends Controller
                     'dt.Closing_quantity',
                     'dt.transaction_date'
                 ])
-                ->whereDate('dt.transaction_date', '>=',  Carbon::today())
+                ->whereDate('dt.transaction_date', '=', Carbon::today())  // Only today's snapshot
                 ->where(function ($query) {
-                    $query->where('dt.Openning_quantity', '=', 0)
-                        ->orWhere('dt.Closing_quantity', '=', 0);
+                    $query->where('dt.Openning_quantity', '<=', 0)
+                        ->orWhere('dt.Closing_quantity', '<=', 0);
                 })
-                ->distinct('i.id')
+                ->orderBy('i.generic_name')
                 ->get();
 
-            return response()->json(['success' => true, 'result' => $low_stocks, 'count' => $low_stocks->count()], 200);
+            // De-duplicate by item ID at the collection level (safe fallback)
+            $low_stocks = $low_stocks->unique('id')->values();
+
+            return response()->json([
+                'success' => true,
+                'result' => $low_stocks,
+                'count' => $low_stocks->count()
+            ], 200);
+
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,

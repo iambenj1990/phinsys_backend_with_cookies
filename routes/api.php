@@ -28,7 +28,7 @@ use App\Models\RequisitionIssuanceSlip;
 Route::middleware('web')->post('/login', [SystemUserController::class, 'login_User']);
 Route::middleware('web')->post('/logout', [SystemUserController::class, 'logoutUser']);
 
-Route::middleware('web','auth:sanctum')->group(function () {
+Route::middleware(['web','auth:sanctum'])->group(function () {
 
         Route::prefix('customers')->group(function () {
             Route::get('/', [CustomersController::class, 'index']);                                 // Fetch all customers

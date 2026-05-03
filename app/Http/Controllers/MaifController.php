@@ -216,6 +216,7 @@ class MaifController extends Controller
                 'message' => 'Database query failed',
                 'error' => $e->getMessage()
             ], 500);
+
         } catch (\Exception $e) {
             Log::info('Unexpected error occurred', ['error' => $e->getMessage()]);
             return response()->json([
