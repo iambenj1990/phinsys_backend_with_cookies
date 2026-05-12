@@ -98,7 +98,7 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::get('/stock/list', [ItemsController::class, 'getJoinedItemswitInventory']);
             Route::get('/generate/tempno', [ItemsController::class, 'TemporaryID']);
             Route::get('/temp/po',[ItemsController::class,'TempPOlist']); // Get all temporary items
-            Route::put('/temp/po/{tempno}', [ItemsController::class,'UpdateTempPO']); // Update temporary P.O.
+            Route::post('/temp/po/{tempno}', [ItemsController::class,'UpdateTempPO']); // Update temporary P.O.
             Route::post('/stockcard', [ItemsController::class, 'stockCard']); // Get stock card for an item
             Route::post('/stockcard/item', [ItemsController::class, 'stockCardbyID']); // Get stock card for an item
             Route::post('/inventory/bydate',[ItemsController::class,'InventoryRangeDate']);

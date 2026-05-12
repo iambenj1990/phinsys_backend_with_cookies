@@ -258,7 +258,7 @@ class ItemsController extends Controller
             AuditTrail::create([
                 'action' => 'Updated',
                 'table_name' => 'items',
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'changes' => 'Updated PO number: ' . $temp_po . ' to ' . $request->po_no
             ]);
             return response()->json([
@@ -639,57 +639,125 @@ class ItemsController extends Controller
         }
     }
 
+    // public function getExpiringStock()
+    // {
+    //     try {
+    //         $today = now()->toDateString();
+    //         $monthFromNow = now()->addDays(30)->toDateString();
+
+
+
+    //         $expiredItems = DB::table('tbl_items')
+    //             ->select([
+    //                 'po_no',
+    //                 'brand_name',
+    //                 'generic_name',
+    //                 'dosage',
+    //                 'dosage_form',
+    //                 'category',
+    //                 'expiration_date'
+    //             ])
+    //             // ->whereDate('expiration_date', '>=', $today)
+    //             ->whereDate('expiration_date', '<=', $monthFromNow)
+    //             ->orderBy('expiration_date', 'asc')
+    //             ->get();
+
+
+
+    //         return response()->json([
+    //             'message' => 'success',
+    //             'items' => $expiredItems,
+    //             'month' => $monthFromNow,
+    //             'count' => $expiredItems->count(),
+    //         ], 200);
+    //     } catch (ValidationException $ve) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation error',
+    //             'errors' => $ve->errors()
+    //         ], 422);
+    //     } catch (QueryException $qe) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Database error',
+    //             'error' => $qe->getMessage()
+    //         ], 500);
+    //     } catch (\Throwable $th) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'An unexpected error occurred',
+    //             'error' => $th->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function getExpiringStock()
-    {
-        try {
-            $today = now()->toDateString();
-            $monthFromNow = now()->addDays(30)->toDateString();
+{
+    try {
+        $today        = now()->toDateString();
+        $monthFromNow = now()->addDays(30)->toDateString();
 
+        // Separate expired vs expiring-soon into two queries
+        $expiredItems = DB::table('tbl_items')
+            ->select([
+                'po_no',
+                'brand_name',
+                'generic_name',
+                'dosage',
+                'dosage_form',
+                'category',
+                'expiration_date',
+            ])
+            ->whereDate('expiration_date', '<', $today)
+            ->where('quantity', '>', 0)          // only if still in stock
+            ->orderBy('expiration_date', 'asc')
+            ->get();
 
+        $expiringSoon = DB::table('tbl_items')
+            ->select([
+                'po_no',
+                'brand_name',
+                'generic_name',
+                'dosage',
+                'dosage_form',
+                'category',
+                'expiration_date',
+            ])
+            ->whereDate('expiration_date', '>=', $today)        // not yet expired
+            ->whereDate('expiration_date', '<=', $monthFromNow) // within 30 days
+            ->where('quantity', '>', 0)
+            ->orderBy('expiration_date', 'asc')
+            ->get();
 
-            $expiredItems = DB::table('tbl_items')
-                ->select([
-                    'po_no',
-                    'brand_name',
-                    'generic_name',
-                    'dosage',
-                    'dosage_form',
-                    'category',
-                    'expiration_date'
-                ])
-                // ->whereDate('expiration_date', '>=', $today)
-                ->whereDate('expiration_date', '<=', $monthFromNow)
-                ->orderBy('expiration_date', 'asc')
-                ->get();
-
-
-
-            return response()->json([
-                'message' => 'success',
-                'items' => $expiredItems,
-                'month' => $monthFromNow,
+        return response()->json([
+            'success'       => true,
+            'message'       => 'success',
+            'as_of'         => $today,
+            'threshold_date'=> $monthFromNow,
+            'expired'       => [
                 'count' => $expiredItems->count(),
-            ], 200);
-        } catch (ValidationException $ve) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $ve->errors()
-            ], 422);
-        } catch (QueryException $qe) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Database error',
-                'error' => $qe->getMessage()
-            ], 500);
-        } catch (\Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
-            ], 500);
-        }
+                'items' => $expiredItems,
+            ],
+            'expiring_soon' => [
+                'count' => $expiringSoon->count(),
+                'items' => $expiringSoon,
+            ],
+        ], 200);
+
+    } catch (QueryException $qe) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Database error',
+            'error'   => $qe->getMessage()
+        ], 500);
+    } catch (\Throwable $th) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An unexpected error occurred',
+            'error'   => $th->getMessage()
+        ], 500);
     }
+}
 
     public function getJoinedItemswitInventory()
     {
@@ -825,91 +893,173 @@ class ItemsController extends Controller
         ], 200);
     }
 
+    // public function InventoryRangeDate(Request $request)
+    // {
+
+    //     $validated = $request->validate([
+    //         'from' => 'required|date',
+    //         'to' => 'required|date|after_or_equal:from',
+    //     ]);
+
+    //     $from = $validated['from'];
+    //     $to = $validated['to'];
+
+    //     $report = DB::table('tbl_items as itms')
+    //         ->select(
+    //             'itms.po_no',
+    //             'itms.brand_name',
+    //             'itms.generic_name',
+    //             'itms.dosage',
+    //             'itms.dosage_form',
+    //             'itms.quantity as current_quantity',
+    //             'itms.expiration_date',
+    //             'inv_from.Openning_quantity as opening_quantity',
+    //             'inv_to.Closing_quantity as closing_quantity',
+    //             DB::raw('SUM(dtxn.quantity) as total_out_quantity')
+    //         )
+
+    //         // Opening quantity subquery
+    //         ->leftJoin(DB::raw("
+    //         (
+    //             SELECT inv1.stock_id, inv1.Openning_quantity
+    //             FROM tbl_daily_inventory inv1
+    //             INNER JOIN (
+    //                 SELECT stock_id, MAX(transaction_date) AS max_date
+    //                 FROM tbl_daily_inventory
+    //                 WHERE transaction_date <= ?
+    //                 GROUP BY stock_id
+    //             ) inv2
+    //             ON inv1.stock_id = inv2.stock_id AND inv1.transaction_date = inv2.max_date
+    //         ) as inv_from
+    //     "), function ($join) {
+    //             $join->on('inv_from.stock_id', '=', 'itms.id');
+    //         })
+
+    //         // Closing quantity subquery
+    //         ->leftJoin(DB::raw("
+    //         (
+    //             SELECT inv1.stock_id, inv1.Closing_quantity
+    //             FROM tbl_daily_inventory inv1
+    //             INNER JOIN (
+    //                 SELECT stock_id, MAX(transaction_date) AS max_date
+    //                 FROM tbl_daily_inventory
+    //                 WHERE transaction_date <= ?
+    //                 GROUP BY stock_id
+    //             ) inv2
+    //             ON inv1.stock_id = inv2.stock_id AND inv1.transaction_date = inv2.max_date
+    //         ) as inv_to
+    //     "), function ($join) {
+    //             $join->on('inv_to.stock_id', '=', 'itms.id');
+    //         })
+
+    //         // Transactions in range
+    //         ->leftJoin('tbl_daily_transactions as dtxn', function ($join) use ($from, $to) {
+    //             $join->on('dtxn.item_id', '=', 'itms.id')
+    //                 ->whereBetween('dtxn.transaction_date', [$from, $to]);
+    //         })
+
+    //         ->setBindings([$from, $to]) // Bind $from to first subquery, $to to second
+    //         ->groupBy(
+    //             'itms.po_no',
+    //             'itms.id',
+    //             'itms.brand_name',
+    //             'itms.generic_name',
+    //             'itms.dosage',
+    //             'itms.dosage_form',
+    //             'itms.quantity',
+    //             'itms.expiration_date',
+    //             'inv_from.Openning_quantity',
+    //             'inv_to.Closing_quantity'
+    //         )
+    //         ->orderBy('itms.brand_name')
+    //         ->orderBy('itms.generic_name')
+    //         ->get();
+
+
+    //     return response()->json(['items' => $report, 'success' => true], 200);
+    // }
     public function InventoryRangeDate(Request $request)
-    {
+{
+    $validated = $request->validate([
+        'from' => 'required|date',
+        'to'   => 'required|date|after_or_equal:from',
+    ]);
 
-        $validated = $request->validate([
-            'from' => 'required|date',
-            'to' => 'required|date|after_or_equal:from',
-        ]);
+    $from = $validated['from'];
+    $to   = $validated['to'];
 
-        $from = $validated['from'];
-        $to = $validated['to'];
+    $report = DB::table('tbl_items as itms')
+        ->select(
+            'itms.po_no',
+            'itms.brand_name',
+            'itms.generic_name',
+            'itms.dosage',
+            'itms.dosage_form',
+            'itms.quantity as current_quantity',
+            'itms.expiration_date',
+            'inv_from.Openning_quantity as opening_quantity',
+            'inv_to.Closing_quantity as closing_quantity',
+            DB::raw('SUM(dtxn.quantity) as total_out_quantity')
+        )
 
-        $report = DB::table('tbl_items as itms')
-            ->select(
-                'itms.po_no',
-                'itms.brand_name',
-                'itms.generic_name',
-                'itms.dosage',
-                'itms.dosage_form',
-                'itms.quantity as current_quantity',
-                'itms.expiration_date',
-                'inv_from.Openning_quantity as opening_quantity',
-                'inv_to.Closing_quantity as closing_quantity',
-                DB::raw('SUM(dtxn.quantity) as total_out_quantity')
-            )
-
-            // Opening quantity subquery
-            ->leftJoin(DB::raw("
+        // Opening quantity — last record ON OR BEFORE $from
+        ->leftJoin(DB::raw("
             (
                 SELECT inv1.stock_id, inv1.Openning_quantity
                 FROM tbl_daily_inventory inv1
                 INNER JOIN (
                     SELECT stock_id, MAX(transaction_date) AS max_date
                     FROM tbl_daily_inventory
-                    WHERE transaction_date <= ?
+                    WHERE transaction_date <= '{$from}'
                     GROUP BY stock_id
-                ) inv2
-                ON inv1.stock_id = inv2.stock_id AND inv1.transaction_date = inv2.max_date
+                ) inv2 ON inv1.stock_id = inv2.stock_id
+                       AND inv1.transaction_date = inv2.max_date
             ) as inv_from
         "), function ($join) {
-                $join->on('inv_from.stock_id', '=', 'itms.id');
-            })
+            $join->on('inv_from.stock_id', '=', 'itms.id');
+        })
 
-            // Closing quantity subquery
-            ->leftJoin(DB::raw("
+        // Closing quantity — last record ON OR BEFORE $to
+        ->leftJoin(DB::raw("
             (
                 SELECT inv1.stock_id, inv1.Closing_quantity
                 FROM tbl_daily_inventory inv1
                 INNER JOIN (
                     SELECT stock_id, MAX(transaction_date) AS max_date
                     FROM tbl_daily_inventory
-                    WHERE transaction_date <= ?
+                    WHERE transaction_date <= '{$to}'
                     GROUP BY stock_id
-                ) inv2
-                ON inv1.stock_id = inv2.stock_id AND inv1.transaction_date = inv2.max_date
+                ) inv2 ON inv1.stock_id = inv2.stock_id
+                       AND inv1.transaction_date = inv2.max_date
             ) as inv_to
         "), function ($join) {
-                $join->on('inv_to.stock_id', '=', 'itms.id');
-            })
+            $join->on('inv_to.stock_id', '=', 'itms.id');
+        })
 
-            // Transactions in range
-            ->leftJoin('tbl_daily_transactions as dtxn', function ($join) use ($from, $to) {
-                $join->on('dtxn.item_id', '=', 'itms.id')
-                    ->whereBetween('dtxn.transaction_date', [$from, $to]);
-            })
+        // Dispensed transactions within the date range
+        ->leftJoin('tbl_daily_transactions as dtxn', function ($join) use ($from, $to) {
+            $join->on('dtxn.item_id', '=', 'itms.id')
+                 ->whereBetween('dtxn.transaction_date', [$from, $to]);
+        })
 
-            ->setBindings([$from, $to]) // Bind $from to first subquery, $to to second
-            ->groupBy(
-                'itms.po_no',
-                'itms.id',
-                'itms.brand_name',
-                'itms.generic_name',
-                'itms.dosage',
-                'itms.dosage_form',
-                'itms.quantity',
-                'itms.expiration_date',
-                'inv_from.Openning_quantity',
-                'inv_to.Closing_quantity'
-            )
-            ->orderBy('itms.brand_name')
-            ->orderBy('itms.generic_name')
-            ->get();
+        ->groupBy(
+            'itms.id',
+            'itms.po_no',
+            'itms.brand_name',
+            'itms.generic_name',
+            'itms.dosage',
+            'itms.dosage_form',
+            'itms.quantity',
+            'itms.expiration_date',
+            'inv_from.Openning_quantity',
+            'inv_to.Closing_quantity'
+        )
+        ->orderBy('itms.brand_name')
+        ->orderBy('itms.generic_name')
+        ->get();
 
-
-        return response()->json(['items' => $report, 'success' => true], 200);
-    }
+    return response()->json(['items' => $report, 'success' => true], 200);
+}
 
 
     public function medicinesUnderPO()
