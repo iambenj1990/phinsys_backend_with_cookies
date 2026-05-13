@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\Models\AuditTrail;
+use App\Models\Daily_inventory as Inventory;
+use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Daily_inventory as Inventory;
 use Illuminate\Validation\ValidationException;
 
 class DailyInventoryController extends Controller
@@ -21,27 +21,28 @@ class DailyInventoryController extends Controller
 
             $Inventory = Inventory::orderBy('transaction_date', 'desc')
                 ->get();
-            return response()->json(['success' => true, 'transactions' =>  $Inventory]);
+
+            return response()->json(['success' => true, 'transactions' => $Inventory]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -53,27 +54,28 @@ class DailyInventoryController extends Controller
 
             $Inventory = Inventory::where('id', $id)
                 ->get();
-            return response()->json(['success' => true, 'transaction' =>  $Inventory]);
+
+            return response()->json(['success' => true, 'transaction' => $Inventory]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -90,27 +92,28 @@ class DailyInventoryController extends Controller
             )');
 
             $data = $latestInventoryQuery->get();
+
             return response()->json($data);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -121,31 +124,31 @@ class DailyInventoryController extends Controller
         try {
             $Inventory = Inventory::where('transaction_date', $transaction_date)
                 ->get();
-            return response()->json(['success' => true, 'transaction' =>  $Inventory]);
+
+            return response()->json(['success' => true, 'transaction' => $Inventory]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
-
 
     public function store(Request $request)
     {
@@ -159,37 +162,38 @@ class DailyInventoryController extends Controller
                     'Closing_quantity' => 'nullable|numeric',
                     'quantity_out' => 'nullable|numeric',
                     'transaction_date' => 'required|date',
-                    'remarks'   => 'nullable|string|max:250',
-                    'status'   => 'nullable|string|max:250',
+                    'remarks' => 'nullable|string|max:250',
+                    'status' => 'nullable|string|max:250',
                     'user_id' => 'required|exists:users,id',
                 ]
             );
 
             $System_users = Inventory::create($validationInput);
+
             return response()->json([
                 'success' => true,
-                'dailyInventory' =>  $System_users
+                'dailyInventory' => $System_users,
             ]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -202,7 +206,7 @@ class DailyInventoryController extends Controller
     {
         try {
             $Inventory = Inventory::where('id', $id);
-            if (!$Inventory) {
+            if (! $Inventory) {
                 return response()->json(['success' => false, 'message' => 'transaction not found'], 404);
             }
 
@@ -214,36 +218,37 @@ class DailyInventoryController extends Controller
                     'quantity_out' => 'required|numeric',
                     'transaction_date' => 'required|date',
                     'user_id' => 'required|exists:users,id',
-                    'remarks'   => 'nullable|string|max:250',
-                    'status'   => 'nullable|string|max:250',
+                    'remarks' => 'nullable|string|max:250',
+                    'status' => 'nullable|string|max:250',
                 ]
             );
 
             $Inventory->update($validationInput);
+
             return response()->json([
                 'success' => true,
-                'transaction' =>  $Inventory
+                'transaction' => $Inventory,
             ]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -258,61 +263,141 @@ class DailyInventoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'record deleted successful'
+                'message' => 'record deleted successful',
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
 
+    // public function getEmptyQuantityStocks()
+    // {
+    //     try {
+
+    //         $latestInventoryQuery = DB::table('tbl_daily_inventory as inv1')
+    //             ->select(
+    //                 'inv1.id',
+    //                 'inv1.stock_id',
+    //                 'inv1.Openning_quantity',
+    //                 'inv1.Closing_quantity',
+    //                 'inv1.quantity_out',
+    //                 'inv1.transaction_date',
+    //                 'inv1.remarks',
+    //                 'inv1.status',
+    //                 'inv1.user_id'
+    //             )
+    //             ->whereRaw('inv1.transaction_date = (
+    //             SELECT MAX(inv2.transaction_date)
+    //             FROM tbl_daily_inventory as inv2
+    //             WHERE inv2.stock_id = inv1.stock_id
+    //         )')
+    //             ->where(function ($query) {
+    //                 $query->where('inv1.Openning_quantity', '=', 0)
+    //                     ->orWhere('inv1.Closing_quantity', '=', 0);
+    //             });
+
+    //         // Join with tbl_items to get item info
+    //         $data = DB::table('tbl_items as i')
+    //             ->joinSub($latestInventoryQuery, 'latest_inv', function ($join) {
+    //                 $join->on('i.id', '=', 'latest_inv.stock_id');
+    //             })
+    //             ->select(
+    //                 'latest_inv.id as inventory_id',
+    //                 'i.id as item_id',
+    //                 'i.po_no',
+    //                 'i.brand_name',
+    //                 'i.generic_name',
+    //                 'i.dosage',
+    //                 'i.dosage_form',
+    //                 'i.unit',
+    //                 'i.quantity as item_quantity',
+    //                 'latest_inv.Openning_quantity',
+    //                 'latest_inv.Closing_quantity',
+    //                 'i.expiration_date',
+    //                 'latest_inv.transaction_date as last_inventory_date',
+    //                 'latest_inv.status',
+    //                 'latest_inv.remarks'
+    //             )
+    //             ->get();
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'stocks' => $data
+    //         ], 200);
+    //     } catch (ValidationException $ve) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation error',
+    //             'errors' => $ve->errors()
+    //         ], 422);
+    //         //throw $th;
+    //     } catch (QueryException $qe) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Database error',
+    //             'error' => $qe->getMessage()
+    //         ], 500);
+    //         //throw $th;
+    //     } catch (\Throwable $th) {
+    //         //throw $th;
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'An unexpected error occurred',
+    //             'error' => $th->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function getEmptyQuantityStocks()
     {
         try {
+            // Step 1: Get the latest transaction_date per stock (efficient, no correlated subquery)
+            $latestDates = DB::table('tbl_daily_inventory')
+                ->select('stock_id', DB::raw('MAX(transaction_date) as max_date'))
+                ->groupBy('stock_id');
 
-            $latestInventoryQuery = DB::table('tbl_daily_inventory as inv1')
+            // Step 2: Get the latest inventory record per stock
+            $latestInventory = DB::table('tbl_daily_inventory as inv')
+                ->joinSub($latestDates, 'ld', function ($join) {
+                    $join->on('inv.stock_id', '=', 'ld.stock_id')
+                        ->on('inv.transaction_date', '=', 'ld.max_date');
+                })
                 ->select(
-                    'inv1.id',
-                    'inv1.stock_id',
-                    'inv1.Openning_quantity',
-                    'inv1.Closing_quantity',
-                    'inv1.quantity_out',
-                    'inv1.transaction_date',
-                    'inv1.remarks',
-                    'inv1.status',
-                    'inv1.user_id'
+                    'inv.id',
+                    'inv.stock_id',
+                    'inv.Openning_quantity',
+                    'inv.Closing_quantity',
+                    'inv.quantity_out',
+                    'inv.transaction_date',
+                    'inv.remarks',
+                    'inv.status',
+                    'inv.user_id'
                 )
-                ->whereRaw('inv1.transaction_date = (
-                SELECT MAX(inv2.transaction_date)
-                FROM tbl_daily_inventory as inv2
-                WHERE inv2.stock_id = inv1.stock_id
-            )')
-                ->where(function ($query) {
-                    $query->where('inv1.Openning_quantity', '=', 0)
-                        ->orWhere('inv1.Closing_quantity', '=', 0);
-                });
+                // ✅ Only truly empty: closing balance is zero
+                ->where('inv.Closing_quantity', '=', 0);
 
-            // Join with tbl_items to get item info
+            // Step 3: Join with items
             $data = DB::table('tbl_items as i')
-                ->joinSub($latestInventoryQuery, 'latest_inv', function ($join) {
+                ->joinSub($latestInventory, 'latest_inv', function ($join) {
                     $join->on('i.id', '=', 'latest_inv.stock_id');
                 })
                 ->select(
@@ -324,42 +409,36 @@ class DailyInventoryController extends Controller
                     'i.dosage',
                     'i.dosage_form',
                     'i.unit',
-                    'i.quantity as item_quantity',
+                    'i.quantity as item_quantity',         // tbl_items stock count
                     'latest_inv.Openning_quantity',
-                    'latest_inv.Closing_quantity',
+                    'latest_inv.Closing_quantity',         // ← the reliable "empty" signal
+                    'latest_inv.quantity_out',
                     'i.expiration_date',
                     'latest_inv.transaction_date as last_inventory_date',
                     'latest_inv.status',
                     'latest_inv.remarks'
                 )
+                ->orderBy('i.brand_name')
+                ->orderBy('i.generic_name')
                 ->get();
-
-
 
             return response()->json([
                 'success' => true,
-                'stocks' => $data
+                'count' => $data->count(),
+                'stocks' => $data,
             ], 200);
-        } catch (ValidationException $ve) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $ve->errors()
-            ], 422);
-            //throw $th;
+
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -368,10 +447,10 @@ class DailyInventoryController extends Controller
     {
         try {
 
-            if (!is_numeric($threshold) || $threshold <= 0) {
+            if (! is_numeric($threshold) || $threshold <= 0) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid threshold value. Must be a positive number.'
+                    'message' => 'Invalid threshold value. Must be a positive number.',
                 ], 422);
             }
 
@@ -421,70 +500,65 @@ class DailyInventoryController extends Controller
                 )
                 ->get();
 
-
-
             return response()->json([
                 'success' => true,
-                'stocks' => $data
+                'stocks' => $data,
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
 
-
-
-
     public function QuantityOutOfStocks()
     {
         try {
-            $lowStocks =  Inventory::where('Openning_quantity', '=', 0)
+            $lowStocks = Inventory::where('Openning_quantity', '=', 0)
                 ->orWhere('Closing_quantity', '=', 0)
                 ->get();
 
             return response()->json([
                 'success' => true,
-                'stocks' => $lowStocks
+                'stocks' => $lowStocks,
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -521,7 +595,6 @@ class DailyInventoryController extends Controller
                 ], 409); // HTTP 409 Conflict
             }
 
-
             $subQuery = DB::table('tbl_daily_inventory')
                 ->select('stock_id', DB::raw('MAX(transaction_date) as max_date'))
                 ->where('status', 'CLOSE')
@@ -551,17 +624,17 @@ class DailyInventoryController extends Controller
                     'status' => 'OPEN',
                     'user_id' => $user_ID,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ];
             })->toArray();
 
             DB::table('tbl_daily_inventory')->insert($insertData);
 
-                AuditTrail::create([
+            AuditTrail::create([
                 'action' => 'Regenerated Inventory',
                 'table_name' => 'tbl_daily_inventory',
                 'user_id' => $user_ID,
-                'changes' => 'Regenerated inventory by user ID: ' . $user_ID
+                'changes' => 'Regenerated inventory by user ID: '.$user_ID,
             ]);
 
             return response()->json([
@@ -570,24 +643,23 @@ class DailyInventoryController extends Controller
                 'count' => count($insertData),
             ], 201);
 
-
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -608,7 +680,6 @@ class DailyInventoryController extends Controller
                 })
                 ->where('inv1.status', 'OPEN')     // Filter main query for OPEN status as well
                 ->select('inv1.id', 'inv1.stock_id', 'inv1.Closing_quantity', 'inv1.transaction_date', 'inv1.status');
-
 
             $latestData = $latestInventoryQuery->get();
 
@@ -645,9 +716,8 @@ class DailyInventoryController extends Controller
                 'action' => 'Closed Inventory',
                 'table_name' => 'tbl_daily_inventory',
                 'user_id' => $user_ID, // Assuming the user is authenticated
-                'changes' => 'Closed inventory records by user ID: ' . $user_ID
+                'changes' => 'Closed inventory records by user ID: '.$user_ID,
             ]);
-
 
             return response()->json([
                 'success' => true,
@@ -658,19 +728,19 @@ class DailyInventoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -688,7 +758,7 @@ class DailyInventoryController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -703,9 +773,10 @@ class DailyInventoryController extends Controller
                 ->whereDate('transaction_date', $Date)
                 // ->where('stock_status', $status)
                 ->get();
+
             return response()->json([
                 'success' => true,
-                'list' => $inventoryCloseList
+                'list' => $inventoryCloseList,
             ], 200);
         } catch (QueryException $e) {
             return response()->json(['error' => 'Database query error', 'message' => $e->getMessage()], 500);
@@ -714,11 +785,32 @@ class DailyInventoryController extends Controller
         }
     }
 
+    public function getOpenStockItems()
+    {
+
+        try {
+            $openStocks = DB::table('tbl_daily_inventory as odi')
+                ->join('tbl_items as i', 'odi.stock_id', '=', 'i.id')
+                ->select([
+                    'odi.Closing_quantity',
+                    'i.generic_name',
+                ])
+                ->where('odi.status', 'OPEN')
+                ->where('odi.Closing_quantity', '!=', 0)
+                ->get();
+
+        } catch (QueryException $qe) {
+            return response()->json(['error' => 'Database query error', 'message' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An unexpected error occurred', 'message' => $e->getMessage()], 500);
+        }
+
+    }
 
     public function testQuery()
     {
         try {
-            //code...
+            // code...
 
             // $subQuery = DB::table('tbl_daily_inventory')
             //     ->select('stock_id', DB::raw('MAX(transaction_date) as max_date'))
@@ -737,28 +829,28 @@ class DailyInventoryController extends Controller
             $AuthenticatedUser = Auth::user();
             $AuthenticatedUserCredentials = Auth::user()->credentials;
 
-            if (!$AuthenticatedUser) {
+            if (! $AuthenticatedUser) {
                 return response()->json(['success' => false, 'message' => 'User not authenticated'], 401);
             }
 
-            return response()->json(["Authenticated User"=>$AuthenticatedUser], 200);
+            return response()->json(['Authenticated User' => $AuthenticatedUser], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -766,7 +858,7 @@ class DailyInventoryController extends Controller
     public function OpenTransactionLookUp()
     {
         try {
-            //code...
+            // code...
             $today = Carbon::today()->toDateString();
 
             $openInventories = DB::table('tbl_daily_inventory')
@@ -775,7 +867,7 @@ class DailyInventoryController extends Controller
                 ->get();
 
             if ($openInventories->isEmpty()) {
-                return response()->json(['status' => true, 'message' => 'Stocks closed. Open today’s stocks to proceed.' . $today], 200);
+                return response()->json(['status' => true, 'message' => 'Stocks closed. Open today’s stocks to proceed.'.$today], 200);
             } else {
                 return response()->json(['status' => false, 'message' => 'Some stock entries are still open. Please verify if previous days stocks have been closed.'], 200);
             }
@@ -783,19 +875,19 @@ class DailyInventoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
