@@ -785,19 +785,26 @@ class DailyInventoryController extends Controller
         }
     }
 
-    public function getOpenStockItems()
+    public function getAvailableOpenStockItems()
     {
-
+     
         try {
             $openStocks = DB::table('tbl_daily_inventory as odi')
                 ->join('tbl_items as i', 'odi.stock_id', '=', 'i.id')
                 ->select([
-                    'odi.Closing_quantity',
-                    'i.generic_name',
+                    'odi.Closing_quantity as Quantity',
+                    'i.generic_name as GenericName',
+                    'i.expiration_date as ExpirationDate',
                 ])
                 ->where('odi.status', 'OPEN')
                 ->where('odi.Closing_quantity', '!=', 0)
+                ->whereDate('i.expiration_date', '>=', Carbon::today()->toDateString())
                 ->get();
+
+            return response()->json([
+                'success' => true,
+                'available_stocks' => $openStocks,
+            ], 200);
 
         } catch (QueryException $qe) {
             return response()->json(['error' => 'Database query error', 'message' => $e->getMessage()], 500);

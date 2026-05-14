@@ -104,6 +104,7 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::post('/inventory/bydate',[ItemsController::class,'InventoryRangeDate']);
             Route::post('/name', [ItemsController::class, 'get_name']);
             Route::get('/po/list',[ItemsController::class,'medicinesUnderPO']); //get list of medicines under PO with items count
+            Route::get('/available/medicine',[DailyInventoryController::class,'getAvailableOpenStockItems']); //get list of medicines that is available
         });
 
 
