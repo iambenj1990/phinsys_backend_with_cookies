@@ -798,8 +798,15 @@ class DailyInventoryController extends Controller
                 ])
                 ->where('odi.status', 'OPEN')
                 ->where('odi.Closing_quantity', '!=', 0)
+
                 ->whereDate('i.expiration_date', '>=', Carbon::today()->toDateString())
                 ->get();
+
+
+                  $openStocks->transform(function ($stock) {
+                    $stock->Quantity = number_format($stock->Quantity, 0, '.', ',');
+                    return $stock;
+                });
 
             return response()->json([
                 'success' => true,

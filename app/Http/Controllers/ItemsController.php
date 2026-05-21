@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Items;
 use App\Models\AuditTrail;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Items;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-
 
 class ItemsController extends Controller
 {
@@ -32,19 +31,19 @@ class ItemsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -56,29 +55,31 @@ class ItemsController extends Controller
             if ($items->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No items found'
+                    'message' => 'No items found',
                 ], 404);
             }
+
             return response()->json([
                 'success' => true,
-                'items' => $items
+                'items' => $items,
             ]);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
+
     public function TemporaryID()
     {
         // $dateNow = now()->format('Ymd');  // Get date as YYYYMMDD
@@ -102,11 +103,10 @@ class ItemsController extends Controller
             $newNumber = 1;
         }
 
-        $temporary_id = 'TEMP-' . $dateNow . '-' . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        $temporary_id = 'TEMP-'.$dateNow.'-'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
 
         return response()->json($temporary_id);
     }
-
 
     //
     public function index(Request $request)
@@ -118,7 +118,6 @@ class ItemsController extends Controller
                 'to' => 'required|date|after_or_equal:from',
             ]);
 
-
             $Items = Items::dateBetween($validated['from'], $validated['to'])
                 ->orderBy('created_at', 'asc')
                 ->get();
@@ -126,7 +125,7 @@ class ItemsController extends Controller
             return response()->json(
                 [
                     'success' => true,
-                    'items' => $Items
+                    'items' => $Items,
                 ],
                 200
             );
@@ -134,22 +133,22 @@ class ItemsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -160,30 +159,31 @@ class ItemsController extends Controller
         try {
 
             $item = Items::where('id', $id)->get();
-            if (!$item) {
+            if (! $item) {
                 return response()->json(['success' => false, 'message' => 'Item not found'], 404);
             }
+
             return response()->json(['success' => true, 'items' => $item]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -198,35 +198,35 @@ class ItemsController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            if (!$po_list) {
-                return response()->json(['success' => false, 'message' => 'No temporary P.O. created',], 404);
+            if (! $po_list) {
+                return response()->json(['success' => false, 'message' => 'No temporary P.O. created'], 404);
             }
 
             return response()->json([
                 'success' => true,
                 'count' => $po_list->count(),
-                'list' => $po_list
+                'list' => $po_list,
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -236,7 +236,7 @@ class ItemsController extends Controller
         try {
 
             $request->validate([
-                'po_no' => 'required|string|unique:tbl_items,po_no'
+                'po_no' => 'required|string|unique:tbl_items,po_no',
             ]);
 
             // Find matching TEMP PO items
@@ -245,7 +245,7 @@ class ItemsController extends Controller
             if ($items->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No items found with the specified PO number.'
+                    'message' => 'No items found with the specified PO number.',
                 ], 404);
             }
 
@@ -259,32 +259,33 @@ class ItemsController extends Controller
                 'action' => 'Updated',
                 'table_name' => 'items',
                 'user_id' => Auth::id(),
-                'changes' => 'Updated PO number: ' . $temp_po . ' to ' . $request->po_no
+                'changes' => 'Updated PO number: '.$temp_po.' to '.$request->po_no,
             ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'PO number updated successfully.'
+                'message' => 'PO number updated successfully.',
             ], 201);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -295,34 +296,34 @@ class ItemsController extends Controller
         try {
 
             $items = Items::where('po_no', $po_number)->get();
-            if (!$items) {
+            if (! $items) {
                 return response()->json(['success' => false, 'message' => 'Items not found'], 404);
             }
+
             return response()->json(['success' => true, 'items' => $items]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
-
 
     public function batchstore(Request $request)
     {
@@ -330,8 +331,8 @@ class ItemsController extends Controller
         try {
 
             foreach ($request->input('medicines', []) as $index => $medicine) {
-                if (isset($medicine['dosage']) && !is_string($medicine['dosage']) && !is_null($medicine['dosage'])) {
-                    logger("Invalid dosage at index {$index}: " . json_encode($medicine['dosage']));
+                if (isset($medicine['dosage']) && ! is_string($medicine['dosage']) && ! is_null($medicine['dosage'])) {
+                    logger("Invalid dosage at index {$index}: ".json_encode($medicine['dosage']));
                 }
             }
 
@@ -355,40 +356,43 @@ class ItemsController extends Controller
 
             $inserted = [];
 
-
             foreach ($validated['medicines'] as $medicine) {
                 $inserted[] = Items::create($medicine);
             }
             DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => count($inserted) . ' Items added successfully',
-                'items' => $inserted
+                'message' => count($inserted).' Items added successfully',
+                'items' => $inserted,
                 // 'skipped' => $skipped
             ]);
         } catch (ValidationException $ve) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -418,31 +422,32 @@ class ItemsController extends Controller
             );
 
             $Items = Items::create($validationInput);
+
             return response()->json([
                 'success' => true,
                 'item' => $Items,
-                'message' => 'Item registration Successful'
+                'message' => 'Item registration Successful',
             ]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -472,7 +477,7 @@ class ItemsController extends Controller
             );
 
             $item = Items::where('id', $validationInput['item_id'])->first();
-            if (!$item) {
+            if (! $item) {
                 return response()->json(['success' => false, 'message' => 'item not found'], 404);
             }
 
@@ -484,32 +489,31 @@ class ItemsController extends Controller
             return response()->json([
                 'success' => true,
                 'item' => $item,
-                'message' => 'Item updating Successful'
+                'message' => 'Item updating Successful',
             ]);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
-
 
     public function destroyItemsByPO(Request $request)
     {
@@ -525,38 +529,37 @@ class ItemsController extends Controller
         try {
             $items = Items::where('po_no', $po_number)
                 ->get();
-            if ($items->isEmpty()) //Used isEmpty() to check if the collection is empty.
-            {
+            if ($items->isEmpty()) { // Used isEmpty() to check if the collection is empty.
                 return response()->json(['success' => false, 'message' => 'items not found'], 404);
             }
             // $item->delete();
             // Items::where('po_no',$po_number)->delete();
-            $items->each->delete();  //Removed the redundant query by using $items->each->delete() to delete the items directly
+            $items->each->delete();  // Removed the redundant query by using $items->each->delete() to delete the items directly
 
             return response()->json([
                 'success' => true,
-                'message' => "Items under PO-number $po_number have been removed."
+                'message' => "Items under PO-number $po_number have been removed.",
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -575,7 +578,7 @@ class ItemsController extends Controller
 
             $Item = Items::where('id', $id)->first();
 
-            if (!$Item) {
+            if (! $Item) {
                 return response()->json(['success' => false, 'message' => 'item not found'], 404);
             }
 
@@ -586,12 +589,11 @@ class ItemsController extends Controller
             if ($hasTransactions) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete this medicine because it already has dispensing records.'
+                    'message' => 'Cannot delete this medicine because it already has dispensing records.',
                 ], 400);
             }
 
             $Item->delete();
-
 
             $dailyInventories = DB::table('tbl_daily_inventory')
                 ->where('stock_id', $id)
@@ -603,38 +605,37 @@ class ItemsController extends Controller
                     ->delete();
             }
 
-
             AuditTrail::create([
                 'action' => 'Delete',
                 'table_name' => 'Items',
                 'user_id' => Auth::id(),
-                'changes' => 'Deleted Item:' . json_encode($Item->toArray()),
+                'changes' => 'Deleted Item:'.json_encode($Item->toArray()),
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'item deleted successfully'
+                'message' => 'item deleted successfully',
             ], 200);
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $ve->errors()
+                'errors' => $ve->errors(),
             ], 422);
-            //throw $th;
+            // throw $th;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         } catch (\Throwable $th) {
-            //throw $th;
+            // throw $th;
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
@@ -644,8 +645,6 @@ class ItemsController extends Controller
     //     try {
     //         $today = now()->toDateString();
     //         $monthFromNow = now()->addDays(30)->toDateString();
-
-
 
     //         $expiredItems = DB::table('tbl_items')
     //             ->select([
@@ -661,8 +660,6 @@ class ItemsController extends Controller
     //             ->whereDate('expiration_date', '<=', $monthFromNow)
     //             ->orderBy('expiration_date', 'asc')
     //             ->get();
-
-
 
     //         return response()->json([
     //             'message' => 'success',
@@ -692,109 +689,182 @@ class ItemsController extends Controller
     // }
 
     public function getExpiringStock()
-{
-    try {
-        $today        = now()->toDateString();
-        $monthFromNow = now()->addDays(30)->toDateString();
+    {
+        try {
+            $today = now()->toDateString();
+            $monthFromNow = now()->addDays(30)->toDateString();
 
-        // Separate expired vs expiring-soon into two queries
-        $expiredItems = DB::table('tbl_items')
-            ->select([
-                'po_no',
-                'brand_name',
-                'generic_name',
-                'dosage',
-                'dosage_form',
-                'category',
-                'expiration_date',
-            ])
-            ->whereDate('expiration_date', '<', $today)
-            ->where('quantity', '>', 0)          // only if still in stock
-            ->orderBy('expiration_date', 'asc')
-            ->get();
+            // Separate expired vs expiring-soon into two queries
+            $expiredItems = DB::table('tbl_items')
+                ->select([
+                    'po_no',
+                    'brand_name',
+                    'generic_name',
+                    'dosage',
+                    'dosage_form',
+                    'category',
+                    'expiration_date',
+                ])
+                ->whereDate('expiration_date', '<', $today)
+                ->where('quantity', '>', 0)          // only if still in stock
+                ->orderBy('expiration_date', 'asc')
+                ->get();
 
-        $expiringSoon = DB::table('tbl_items')
-            ->select([
-                'po_no',
-                'brand_name',
-                'generic_name',
-                'dosage',
-                'dosage_form',
-                'category',
-                'expiration_date',
-            ])
-            ->whereDate('expiration_date', '>=', $today)        // not yet expired
-            ->whereDate('expiration_date', '<=', $monthFromNow) // within 30 days
-            ->where('quantity', '>', 0)
-            ->orderBy('expiration_date', 'asc')
-            ->get();
+            $expiringSoon = DB::table('tbl_items')
+                ->select([
+                    'po_no',
+                    'brand_name',
+                    'generic_name',
+                    'dosage',
+                    'dosage_form',
+                    'category',
+                    'expiration_date',
+                ])
+                ->whereDate('expiration_date', '>=', $today)        // not yet expired
+                ->whereDate('expiration_date', '<=', $monthFromNow) // within 30 days
+                ->where('quantity', '>', 0)
+                ->orderBy('expiration_date', 'asc')
+                ->get();
 
-        return response()->json([
-            'success'       => true,
-            'message'       => 'success',
-            'as_of'         => $today,
-            'threshold_date'=> $monthFromNow,
-            'expired'       => [
-                'count' => $expiredItems->count(),
-                'items' => $expiredItems,
-            ],
-            'expiring_soon' => [
-                'count' => $expiringSoon->count(),
-                'items' => $expiringSoon,
-            ],
-        ], 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'success',
+                'as_of' => $today,
+                'threshold_date' => $monthFromNow,
+                'expired' => [
+                    'count' => $expiredItems->count(),
+                    'items' => $expiredItems,
+                ],
+                'expiring_soon' => [
+                    'count' => $expiringSoon->count(),
+                    'items' => $expiringSoon,
+                ],
+            ], 200);
 
-    } catch (QueryException $qe) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Database error',
-            'error'   => $qe->getMessage()
-        ], 500);
-    } catch (\Throwable $th) {
-        return response()->json([
-            'success' => false,
-            'message' => 'An unexpected error occurred',
-            'error'   => $th->getMessage()
-        ], 500);
+        } catch (QueryException $qe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error',
+                'error' => $qe->getMessage(),
+            ], 500);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
-}
+
+    // public function getJoinedItemswitInventory() //ORIGINAL LISTING UNFILTERED
+    // {
+
+    //     $latestInventoryQuery = DB::table('tbl_daily_inventory as inv1')
+    //         ->select('inv1.id', 'inv1.stock_id', 'inv1.Closing_quantity', 'inv1.Openning_quantity', 'inv1.transaction_date')
+    //         ->whereRaw('inv1.transaction_date = (
+    //         SELECT MAX(inv2.transaction_date)
+    //         FROM tbl_daily_inventory as inv2
+    //         WHERE inv2.stock_id = inv1.stock_id
+    //     )')
+    //         ->where('inv1.status', 'OPEN'); // Filter by OPEN status;
+
+    //     $data = DB::table('tbl_items')
+    //         ->leftJoinSub($latestInventoryQuery, 'latest_inventory', function ($join) {
+    //             $join->on('tbl_items.id', '=', 'latest_inventory.stock_id');
+    //         })
+    //         ->select(
+    //             'latest_inventory.id as inventory_id',
+    //             'tbl_items.id as item_id',
+    //             'tbl_items.po_no',
+    //             'tbl_items.brand_name',
+    //             'tbl_items.generic_name',
+    //             'tbl_items.dosage',
+    //             'tbl_items.dosage_form',
+    //             'tbl_items.unit',
+    //             'tbl_items.quantity as item_quantity',
+    //             'latest_inventory.Openning_quantity',
+    //             'latest_inventory.Closing_quantity',
+    //             'tbl_items.expiration_date',
+    //             'latest_inventory.transaction_date as last_inventory_date',
+
+    //         )
+    //         ->orderBy('tbl_items.brand_name')
+    //         ->orderBy('tbl_items.expiration_date', 'asc')
+    //         ->get();
+    //     return $data;
+    // }
 
     public function getJoinedItemswitInventory()
     {
 
-        $latestInventoryQuery = DB::table('tbl_daily_inventory as inv1')
-            ->select('inv1.id', 'inv1.stock_id', 'inv1.Closing_quantity', 'inv1.Openning_quantity', 'inv1.transaction_date')
-            ->whereRaw('inv1.transaction_date = (
-            SELECT MAX(inv2.transaction_date)
-            FROM tbl_daily_inventory as inv2
-            WHERE inv2.stock_id = inv1.stock_id
-        )')
-            ->where('inv1.status', 'OPEN'); // Filter by OPEN status;
+        try {
+            $latestInventoryQuery = DB::table('tbl_daily_inventory')
+                ->select(
+                    'id',
+                    'stock_id',
+                    'Closing_quantity',
+                    'Openning_quantity',
+                    'transaction_date',
+                    DB::raw('ROW_NUMBER() OVER (
+            PARTITION BY stock_id 
+            ORDER BY transaction_date DESC
+        ) as rn')
+                )
+                ->where('status', 'OPEN');
 
-        $data = DB::table('tbl_items')
-            ->leftJoinSub($latestInventoryQuery, 'latest_inventory', function ($join) {
-                $join->on('tbl_items.id', '=', 'latest_inventory.stock_id');
-            })
-            ->select(
-                'latest_inventory.id as inventory_id',
-                'tbl_items.id as item_id',
-                'tbl_items.po_no',
-                'tbl_items.brand_name',
-                'tbl_items.generic_name',
-                'tbl_items.dosage',
-                'tbl_items.dosage_form',
-                'tbl_items.unit',
-                'tbl_items.quantity as item_quantity',
-                'latest_inventory.Openning_quantity',
-                'latest_inventory.Closing_quantity',
-                'tbl_items.expiration_date',
-                'latest_inventory.transaction_date as last_inventory_date',
+            $latestOnly = DB::table(DB::raw("({$latestInventoryQuery->toSql()}) as ranked"))
+                ->mergeBindings($latestInventoryQuery)
+                ->where('rn', 1);
 
-            )
-            ->orderBy('tbl_items.brand_name')
-            ->orderBy('tbl_items.expiration_date', 'asc')
-            ->get();
-        return $data;
+            $data = DB::table('tbl_items')
+                ->leftJoinSub($latestOnly, 'latest_inventory', function ($join) {
+                    $join->on('tbl_items.id', '=', 'latest_inventory.stock_id');
+                })
+                ->select(
+                    'latest_inventory.id as inventory_id',
+                    'tbl_items.id as item_id',
+                    'tbl_items.po_no',
+                    'tbl_items.brand_name',
+                    'tbl_items.generic_name',
+                    'tbl_items.dosage',
+                    'tbl_items.dosage_form',
+                    'tbl_items.unit',
+                    'tbl_items.quantity as item_quantity',
+                    'latest_inventory.Openning_quantity',
+                    'latest_inventory.Closing_quantity',
+                    'tbl_items.expiration_date',
+                    'latest_inventory.transaction_date as last_inventory_date',
+                )
+                ->where('latest_inventory.Closing_quantity', '>', 0)
+                ->where('latest_inventory.Openning_quantity', '>', 0)
+                ->where('tbl_items.expiration_date', '>', now())
+                ->orderBy('tbl_items.brand_name')
+                ->orderBy('tbl_items.expiration_date', 'asc')
+                ->get();
+
+            return $data;
+
+        } catch (ValidationException $e) {
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database query failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
     }
 
     public function getJoinedItemswitInventoryfiltered()
@@ -848,7 +918,6 @@ class ItemsController extends Controller
         return $filtered;
     }
 
-
     public function stockCard(Request $request)
     {
 
@@ -868,7 +937,7 @@ class ItemsController extends Controller
         return response()->json([
             'success' => true,
             'stockCard' => $stockCard,
-            'message' => 'Stock card retrieved successfully'
+            'message' => 'Stock card retrieved successfully',
         ], 200);
     }
 
@@ -889,7 +958,7 @@ class ItemsController extends Controller
         return response()->json([
             'success' => true,
             'stockCard' => $stockCard,
-            'message' => 'Stock card retrieved successfully'
+            'message' => 'Stock card retrieved successfully',
         ], 200);
     }
 
@@ -975,35 +1044,34 @@ class ItemsController extends Controller
     //         ->orderBy('itms.generic_name')
     //         ->get();
 
-
     //     return response()->json(['items' => $report, 'success' => true], 200);
     // }
     public function InventoryRangeDate(Request $request)
-{
-    $validated = $request->validate([
-        'from' => 'required|date',
-        'to'   => 'required|date|after_or_equal:from',
-    ]);
+    {
+        $validated = $request->validate([
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
+        ]);
 
-    $from = $validated['from'];
-    $to   = $validated['to'];
+        $from = $validated['from'];
+        $to = $validated['to'];
 
-    $report = DB::table('tbl_items as itms')
-        ->select(
-            'itms.po_no',
-            'itms.brand_name',
-            'itms.generic_name',
-            'itms.dosage',
-            'itms.dosage_form',
-            'itms.quantity as current_quantity',
-            'itms.expiration_date',
-            'inv_from.Openning_quantity as opening_quantity',
-            'inv_to.Closing_quantity as closing_quantity',
-            DB::raw('SUM(dtxn.quantity) as total_out_quantity')
-        )
+        $report = DB::table('tbl_items as itms')
+            ->select(
+                'itms.po_no',
+                'itms.brand_name',
+                'itms.generic_name',
+                'itms.dosage',
+                'itms.dosage_form',
+                'itms.quantity as current_quantity',
+                'itms.expiration_date',
+                'inv_from.Openning_quantity as opening_quantity',
+                'inv_to.Closing_quantity as closing_quantity',
+                DB::raw('SUM(dtxn.quantity) as total_out_quantity')
+            )
 
-        // Opening quantity — last record ON OR BEFORE $from
-        ->leftJoin(DB::raw("
+            // Opening quantity — last record ON OR BEFORE $from
+            ->leftJoin(DB::raw("
             (
                 SELECT inv1.stock_id, inv1.Openning_quantity
                 FROM tbl_daily_inventory inv1
@@ -1016,11 +1084,11 @@ class ItemsController extends Controller
                        AND inv1.transaction_date = inv2.max_date
             ) as inv_from
         "), function ($join) {
-            $join->on('inv_from.stock_id', '=', 'itms.id');
-        })
+                $join->on('inv_from.stock_id', '=', 'itms.id');
+            })
 
-        // Closing quantity — last record ON OR BEFORE $to
-        ->leftJoin(DB::raw("
+            // Closing quantity — last record ON OR BEFORE $to
+            ->leftJoin(DB::raw("
             (
                 SELECT inv1.stock_id, inv1.Closing_quantity
                 FROM tbl_daily_inventory inv1
@@ -1033,34 +1101,33 @@ class ItemsController extends Controller
                        AND inv1.transaction_date = inv2.max_date
             ) as inv_to
         "), function ($join) {
-            $join->on('inv_to.stock_id', '=', 'itms.id');
-        })
+                $join->on('inv_to.stock_id', '=', 'itms.id');
+            })
 
-        // Dispensed transactions within the date range
-        ->leftJoin('tbl_daily_transactions as dtxn', function ($join) use ($from, $to) {
-            $join->on('dtxn.item_id', '=', 'itms.id')
-                 ->whereBetween('dtxn.transaction_date', [$from, $to]);
-        })
+            // Dispensed transactions within the date range
+            ->leftJoin('tbl_daily_transactions as dtxn', function ($join) use ($from, $to) {
+                $join->on('dtxn.item_id', '=', 'itms.id')
+                    ->whereBetween('dtxn.transaction_date', [$from, $to]);
+            })
 
-        ->groupBy(
-            'itms.id',
-            'itms.po_no',
-            'itms.brand_name',
-            'itms.generic_name',
-            'itms.dosage',
-            'itms.dosage_form',
-            'itms.quantity',
-            'itms.expiration_date',
-            'inv_from.Openning_quantity',
-            'inv_to.Closing_quantity'
-        )
-        ->orderBy('itms.brand_name')
-        ->orderBy('itms.generic_name')
-        ->get();
+            ->groupBy(
+                'itms.id',
+                'itms.po_no',
+                'itms.brand_name',
+                'itms.generic_name',
+                'itms.dosage',
+                'itms.dosage_form',
+                'itms.quantity',
+                'itms.expiration_date',
+                'inv_from.Openning_quantity',
+                'inv_to.Closing_quantity'
+            )
+            ->orderBy('itms.brand_name')
+            ->orderBy('itms.generic_name')
+            ->get();
 
-    return response()->json(['items' => $report, 'success' => true], 200);
-}
-
+        return response()->json(['items' => $report, 'success' => true], 200);
+    }
 
     public function medicinesUnderPO()
     {
@@ -1073,29 +1140,29 @@ class ItemsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'po_no' => $items
+                'po_no' => $items,
             ], 200);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
 
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
-                'error' => $th->getMessage()
+                'error' => $th->getMessage(),
             ], 500);
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
                 'message' => 'Database error',
-                'error' => $qe->getMessage()
+                'error' => $qe->getMessage(),
             ], 500);
-            //throw $th;
+            // throw $th;
         }
     }
 }

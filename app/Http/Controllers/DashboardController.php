@@ -315,7 +315,8 @@ class DashboardController extends Controller
                 ->where('status', 'OPEN')
                 ->where('Openning_quantity', '>', 0)
                 ->where('Closing_quantity', '>', 0)
-                ->whereDate('expiration_date', '>', $monthFromNow) // Exclude expired & near-expiry
+                ->whereDate('expiration_date', '>', $today)
+                // ->whereDate('expiration_date', '>', $monthFromNow)  // Exclude expired & near-expiry
                 ->count();
 
             return response()->json([
