@@ -77,4 +77,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserCredentials::class,'userid');
     }
+
+    public function stockAssignments()
+    {
+        return $this->BelongsToMany(Items::class, 'UserStockAssignments', 'user_id', 'item_id')->using(UserStockAssignment::class); 
+    }
 }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('user_stock_assignment', function (Blueprint $table) {
             $table->id()->index();
             $table->unsignedBigInteger('user_id')->index();
-            $table->string('PO_number', 255)->index();
+            $table->unsignedBigInteger('item_id')->index();
             $table->timestamps();
           
         });

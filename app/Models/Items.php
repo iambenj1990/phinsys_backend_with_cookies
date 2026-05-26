@@ -37,6 +37,11 @@ class items extends Model
         return $query->whereBetween(DB::raw('DATE(created_at)'), [$from, $to]);
     }
 
+    public function assignedUsers() {
+            return $this->belongsToMany(User::class, 'UserStockAssignment', 'item_id', 'user_id')
+                        ->using(UserStockAssignment::class);
+        }
+
 
     protected static function booted()
     {
@@ -60,7 +65,7 @@ class items extends Model
                 'changes' => 'Created item: ' . $item->brand_name . ' - ' . $item->generic_name . ' - form ' . $item->dosage_form . ' - Dosage ' . $item->dosage . ' -  Quantity: ' . $item->quantity .' - Expiration Date: ' . $item->expiration_date,
             ]);
 
-            $exists= Medicinelibrary::where('brand_name',$item->brand_name)
+            $exists= Medicinelibrary::where('brand_name', $item->brand_name)
               ->where('generic_name', $item->generic_name)
                 ->where('dosage_form', $item->dosage_form)
                 ->where('dosage', $item->dosage)
