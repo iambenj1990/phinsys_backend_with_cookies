@@ -129,6 +129,7 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::delete('/user/credentials/{id}', [UserCredentialsController::class, 'destroy']); // delete user credentials
             // Route::get('/user/credentials/user/{user_id}', [UserCredentialsController::class, 'showByUserId']); // Get user credentials by user ID
             Route::post('/user/items/assign', [MedicineAssignController::class, 'assign_medicine']); // assign medicine to user
+             Route::get('/user/items/assignlist/{id}', [MedicineAssignController::class, 'ShowAssignedMedicine']);
 
             Route::get('/library/medlist', [MedicinelibraryController::class, 'index']); // Get all units
             Route::post('/library/medlist/new', [MedicinelibraryController::class, 'batch_Store']); // Get all units
