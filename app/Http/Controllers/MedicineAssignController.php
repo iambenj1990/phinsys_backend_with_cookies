@@ -116,9 +116,9 @@ class MedicineAssignController extends Controller
                 ->where('item_id', $validatedData['item_id'])
                 ->exists();
 
-            if (!$assigned) {
-                return response()->json(['message' => 'Item is not assigned to this user.'], 422);
-            }
+            // if (!$assigned) {
+            //     return response()->json(['message' => 'Item is not assigned to this user.'], 422);
+            // }
 
             UserStockAssignment::where('user_id', $validatedData['user_id'])
                 ->where('item_id', $validatedData['item_id'])

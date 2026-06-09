@@ -248,6 +248,12 @@ class SystemUserController extends Controller
                 'success' => false,
                 'message' => 'An error occurred while changing password',
             ], 500);
+        }catch (\Exception $ex) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $ex->getMessage()
+            ], 500);
         }
     }
 

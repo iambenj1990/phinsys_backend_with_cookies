@@ -35,7 +35,7 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::get('/', [CustomersController::class, 'index']);                                 // Fetch all customers
             Route::get('/{id}', [CustomersController::class, 'show']);                              // Fetch a single customer by ID
             Route::post('/', [CustomersController::class, 'store']);                                // Create a new customer
-            Route::put('/{id}', [CustomersController::class, 'update']);                            // Update an existing customer by ID
+            Route::post('/{id}', [CustomersController::class, 'update']);                            // Update an existing customer by ID
             Route::post('/remove', [CustomersController::class, 'destroy']);
             Route::get('/transactions/{id}',[DailyTransactionsController::class,'Customer_Transaction_List']);
             Route::get('/transactions/{id}/list/{trans_id}',[DailyTransactionsController::class,'Customer_Transaction_List_Breakdown']);
@@ -54,7 +54,7 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::post('/inventory/open-latest/{id}', [DailyInventoryController::class, 'regenerateInventory']);            // regenerate inventory for the day || generate OPENNING ITEM LIST
             Route::post('/inventory/close-latest/{id}', [DailyInventoryController::class, 'closeInventory']);           // CLOSE ITEMS FOR THE DAY
             Route::get('/inventory/get-list/{date}', [DailyInventoryController::class, 'closeInventoryByDate']);           // CLOSE ITEMS FOR THE DAY
-            Route::put('/{id}', [DailyInventoryController::class, 'update']);                                  // Update an existing transaction
+            Route::post('/{id}', [DailyInventoryController::class, 'update']);                                  // Update an existing transaction
             Route::delete('/{id}', [DailyInventoryController::class, 'destroy']);                                           // Delete a transaction
 
             Route::get('/mode/test', [DailyInventoryController::class, 'testQuery']);
@@ -115,10 +115,10 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::get('/users', [SystemUserController::class, 'index']);              // Get all users
             Route::get('/user/profile/{id}', [SystemUserController::class, 'show']);          // Get a specific user
             Route::post('/user/new', [SystemUserController::class, 'store']);           // Create a new user
-            Route::put('/user/profile-update/{id}', [SystemUserController::class, 'update']);      // Update an existing user
+            Route::post('/user/profile-update/{id}', [SystemUserController::class, 'update']);      // Update an existing user
             Route::delete('/user/profile-remove/{id}', [SystemUserController::class, 'destroy']);               // Delete a user
-            Route::put('/user/profile-deactivate/{id}', [SystemUserController::class, 'deactivateUser']); // deactivate user
-            Route::put('/user/profile-activate/{id}', [SystemUserController::class, 'activateUser']); // deactivate user
+            Route::post('/user/profile-deactivate/{id}', [SystemUserController::class, 'deactivateUser']); // deactivate user
+            Route::post('/user/profile-activate/{id}', [SystemUserController::class, 'activateUser']); // deactivate user
             Route::post('/user/credentials', [SystemUserController::class, 'GetMyModule']); // Get user credentials
 
 
@@ -140,19 +140,19 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
             Route::get('/library/units', [UnitController::class, 'getUnits']); // Get all units
             Route::post('/library/units', [UnitController::class, 'store']); // Insert new unit
             Route::get('/library/units/{id}', [UnitController::class, 'show']); // Get single unit by ID
-            Route::put('/library/units/{id}', [UnitController::class, 'update']); // Update a unit
+            Route::post('/library/units/{id}', [UnitController::class, 'update']); // Update a unit
             Route::post('/library/units/remove', [UnitController::class, 'destroy']); // Delete a unit
 
             Route::get('/library/dosages', [DosageTypeController::class, 'getDosageTypes']); // Get all units
             Route::post('/library/dosages', [DosageTypeController::class, 'store']); // Insert new unit
             Route::get('/library/dosages/{id}', [DosageTypeController::class, 'show']); // Get single unit by ID
-            Route::put('/library/dosages/{id}', [DosageTypeController::class, 'update']); // Update a unit
+            Route::post('/library/dosages/{id}', [DosageTypeController::class, 'update']); // Update a unit
             Route::post('/library/dosages/remove', [DosageTypeController::class, 'removeDosageType']);
             // Route::delete('/library/dosages/{id}', [DosageTypeController::class, 'destroy']);  Delete a unit
 
             Route::get('/configuration/{id}', [ConfigurationsController::class, 'show']); // Get all config
             Route::post('/configuration', [ConfigurationsController::class, 'store']); // Insert new config
-            Route::put('/configuration/{id}/config', [ConfigurationsController::class, 'updateConfig']); // Update config
+            Route::post('/configuration/{id}/config', [ConfigurationsController::class, 'updateConfig']); // Update config
             Route::delete('/configuration/{id}', [ConfigurationsController::class, 'destroy']); // Delete config
 
         });

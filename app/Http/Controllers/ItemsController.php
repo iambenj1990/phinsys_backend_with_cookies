@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditTrail;
 use App\Models\Items;
+use App\Models\UserStockAssignment;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -103,7 +104,7 @@ class ItemsController extends Controller
             $newNumber = 1;
         }
 
-        $temporary_id = 'TEMP-'.$dateNow.'-'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        $temporary_id = 'TEMP-' . $dateNow . '-' . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
 
         return response()->json($temporary_id);
     }
@@ -259,7 +260,7 @@ class ItemsController extends Controller
                 'action' => 'Updated',
                 'table_name' => 'items',
                 'user_id' => Auth::id(),
-                'changes' => 'Updated PO number: '.$temp_po.' to '.$request->po_no,
+                'changes' => 'Updated PO number: ' . $temp_po . ' to ' . $request->po_no,
             ]);
 
             return response()->json([
@@ -332,7 +333,7 @@ class ItemsController extends Controller
 
             foreach ($request->input('medicines', []) as $index => $medicine) {
                 if (isset($medicine['dosage']) && ! is_string($medicine['dosage']) && ! is_null($medicine['dosage'])) {
-                    logger("Invalid dosage at index {$index}: ".json_encode($medicine['dosage']));
+                    logger("Invalid dosage at index {$index}: " . json_encode($medicine['dosage']));
                 }
             }
 
@@ -363,7 +364,7 @@ class ItemsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => count($inserted).' Items added successfully',
+                'message' => count($inserted) . ' Items added successfully',
                 'items' => $inserted,
                 // 'skipped' => $skipped
             ]);
@@ -609,7 +610,7 @@ class ItemsController extends Controller
                 'action' => 'Delete',
                 'table_name' => 'Items',
                 'user_id' => Auth::id(),
-                'changes' => 'Deleted Item:'.json_encode($Item->toArray()),
+                'changes' => 'Deleted Item:' . json_encode($Item->toArray()),
             ]);
 
             return response()->json([
@@ -740,7 +741,6 @@ class ItemsController extends Controller
                     'items' => $expiringSoon,
                 ],
             ], 200);
-
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
@@ -797,6 +797,9 @@ class ItemsController extends Controller
     public function getJoinedItemswitInventory()
     {
 
+    
+    
+
         try {
             $latestInventoryQuery = DB::table('tbl_daily_inventory')
                 ->select(
@@ -842,8 +845,17 @@ class ItemsController extends Controller
                 ->orderBy('tbl_items.expiration_date', 'asc')
                 ->get();
 
-            return $data;
 
+             $user_id = auth()->id();
+
+            $assignedMedicines = UserStockAssignment::where('user_id', $user_id)
+                ->pluck('item_id');
+
+            if ($assignedMedicines->isNotEmpty()) {
+                $data = $data->whereIn('item_id', $assignedMedicines)->values();
+            }
+
+            return $data;
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -864,7 +876,6 @@ class ItemsController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-
     }
 
     public function getJoinedItemswitInventoryfiltered()
