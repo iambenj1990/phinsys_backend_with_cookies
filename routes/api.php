@@ -59,6 +59,7 @@ Route::middleware(['web','auth:sanctum'])->group(function () {
 
             Route::get('/mode/test', [DailyInventoryController::class, 'testQuery']);
             Route::get('/inventoryOpen/today', [DailyInventoryController::class, 'OpenTransactionLookUp']);
+            Route::get('/inventoryClose/today', [DailyInventoryController::class, 'getStockQuantity']);
 
             Route::post('/ris/new',[RequisitionIssuanceSlipController::class, 'store']);
             Route::get('/ris/list',[RequisitionIssuanceSlipController::class, 'index']);

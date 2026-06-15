@@ -814,7 +814,7 @@ class DailyInventoryController extends Controller
             ], 200);
 
         } catch (QueryException $qe) {
-            return response()->json(['error' => 'Database query error', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Database query error', 'message' => $qe->getMessage()], 500);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An unexpected error occurred', 'message' => $e->getMessage()], 500);
         }
@@ -885,6 +885,48 @@ class DailyInventoryController extends Controller
             } else {
                 return response()->json(['status' => false, 'message' => 'Some stock entries are still open. Please verify if previous days stocks have been closed.'], 200);
             }
+        } catch (ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $ve->errors(),
+            ], 422);
+        } catch (QueryException $qe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error',
+                'error' => $qe->getMessage(),
+            ], 500);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getStockQuantity(Request $request)
+    {
+        try {
+            
+            $validated = $request->validate([
+                'stock_id' => 'required|exists:tbl_daily_inventory,stock_id',
+            ]);
+
+            $today = Carbon::today()->toDateString();
+
+            $CloseStocks = DB::table('tbl_daily_inventory')
+                ->where('status', 'CLOSE')
+                ->whereDate('transaction_date', $today)
+                ->where('stock_id', $validated['stock_id'])
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'stocks' => $CloseStocks,
+            ], 200);
+
         } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
