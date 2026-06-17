@@ -16,10 +16,12 @@ return new class extends Migration
             $table->id()->index();
             $table->unsignedBigInteger('user_id')->index();
             $table->unsignedBigInteger('item_id')->index();
-            $table-> string('type',200)->nullable();
+            $table->string('type',200)->nullable();
             $table->integer('prev_quantity')->default(0);
             $table->integer('quantity')->default(0);
             $table->longText('remarks')->nullable();
+            $table->boolean('is_approved')->default(false);
+            $table->unsignedBigInteger('approved_by')->nullable()->index();
             $table->timestamps();
         });
     }
