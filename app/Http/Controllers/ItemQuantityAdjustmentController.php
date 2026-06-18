@@ -7,28 +7,29 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class ItemQuantityAdjustmentController extends Controller
 {
     //
 
-     public function getCurrentStockQuantity($id)
-    {
+    public function getCurrentStockQuantity($id){
         try {
-            
-           
+
+
 
             $today = Carbon::today()->toDateString();
 
             $CloseStocks = DB::table('tbl_daily_inventory')
-                ->where('status', 'CLOSE')
+                ->where('status', 'OPEN')
                 ->whereDate('transaction_date', $today)
                 ->where('stock_id', $id)
                 ->get();
 
-            return $CloseStocks;
 
-        
+            
+
+            return $CloseStocks;
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
@@ -44,16 +45,17 @@ class ItemQuantityAdjustmentController extends Controller
         }
     }
 
-    public function getItemDescription($id){
+    public function getItemDescription($id)
+    {
 
         try {
             $itemDescription = DB::table('tbl_items')
                 ->where('id', $id)
-                ->select(['description', 'brand_name','generic_name','dosage','expiration_date'])
+                ->select(['po_no', 'brand_name', 'generic_name', 'dosage', 'expiration_date'])
                 ->first();
 
             if ($itemDescription) {
-                return $itemDescription ;
+                return $itemDescription;
             }
         } catch (QueryException $qe) {
             return response()->json([
@@ -70,27 +72,40 @@ class ItemQuantityAdjustmentController extends Controller
         }
     }
 
-    public function MedicalDescription(Request $request){
-          try {
+    public function getItemInformation($ItemId)
+    {
+        try {
 
-          $validatedData = $request->validate([
-            'item_id' => 'required|integer',
-        ]);
 
+            if (!is_numeric($ItemId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid item id'
+                ], 422);
+            }
+
+
+
+
+            $itemDescription = $this->getItemDescription($ItemId);
+            $currentStockQuantity = $this->getCurrentStockQuantity($ItemId);
+
+            Log::info('Current Stock Quantity', [
+                'item_description' => $itemDescription,
+                'current_stock_quantity' => $currentStockQuantity
+            ]);
             return response()->json([
                 'success' => true,
                 'message' => 'Validation successful',
-                'item_description' => $this->getItemDescription($validatedData['item_id']),
-                'current_stock_quantity' => $this->getCurrentStockQuantity($validatedData['item_id']),
+                'item_description' => $itemDescription,
+                'current_stock_quantity' => $currentStockQuantity,
             ], 200);
-
-          }catch (ValidationException $ve) {
+        } catch (ValidationException $ve) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $ve->errors(),
             ], 422);
-            
         } catch (QueryException $qe) {
             return response()->json([
                 'success' => false,
