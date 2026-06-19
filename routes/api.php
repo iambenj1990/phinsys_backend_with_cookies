@@ -158,6 +158,11 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
         Route::post('/configuration/{id}/config', [ConfigurationsController::class, 'updateConfig']); // Update config
         Route::delete('/configuration/{id}', [ConfigurationsController::class, 'destroy']); // Delete config
 
+        Route::get('/list/types', [ItemQuantityAdjustmentController::class, 'getAdjustmentTypes']);
+
+
+        
+
     });
 
     Route::prefix('indicators')->group(function () {
