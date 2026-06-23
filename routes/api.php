@@ -70,7 +70,10 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
         Route::post('/ris/info', [RequisitionIssuanceSlipController::class, 'RIS_INFO']);
         Route::post('/ris/date', [RequisitionIssuanceSlipController::class, 'RIS_TransactionDate']);
         Route::post('/ris/remove/item', [RequisitionIssuanceSlipController::class, 'remove_item']);
-    });
+        Route::post('/request/adjustment',[ItemQuantityAdjustmentController::class,'store']);
+        Route::get('/request/list',[ItemQuantityAdjustmentController::class,'index']);
+    
+        });
 
 
     Route::prefix('orders')->group(function () {
@@ -159,7 +162,7 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
         Route::delete('/configuration/{id}', [ConfigurationsController::class, 'destroy']); // Delete config
 
         Route::get('/list/types', [ItemQuantityAdjustmentController::class, 'getAdjustmentTypes']);
-
+       
 
         
 

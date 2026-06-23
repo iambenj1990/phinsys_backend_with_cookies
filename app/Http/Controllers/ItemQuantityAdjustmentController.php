@@ -170,4 +170,38 @@ class ItemQuantityAdjustmentController extends Controller
             ], 500);
         }
     }
+
+
+    public function index(){
+         try {
+
+            $requested = ItemQuantityAdjustment::orderByDesc('id');
+            if (!$requested) {
+         return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+            ], 500);
+            }
+
+             return response()->json([
+                'success' => true,
+                'list' => $requested,
+            ], 200);
+
+        } catch (\Throwable $th) {
+
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $th->getMessage(),
+            ], 500);
+        } catch ( QueryException $qe){
+              return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred',
+                'error' => $qe->getMessage(),
+            ], 500);
+        }
+    }
 }
